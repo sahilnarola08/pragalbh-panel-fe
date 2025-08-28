@@ -9,13 +9,13 @@ import * as z from "zod";
 const userSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  address: z.string().min(10, "Address must be at least 10 characters"),
-  contactNumber: z.string().min(10, "Contact number must be at least 10 digits"),
-  telegramUsername: z.string().min(3, "Telegram username must be at least 3 characters"),
+  address: z.string().min(10, "Address must be at least 10 characters").optional(),
+  contactNumber: z.string().min(10, "Contact number must be at least 10 digits").optional(),
   platformName: z.string().min(1, "Please select a platform"),
-  platformUsername: z.string().min(2, "Platform username must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
+  platformUsername: z.string().min(2, "Platform username must be at least 2 characters").optional(),
+  email: z.string().email("Please enter a valid email address").optional(),
   clientType: z.string().min(1, "Please select a client type"),
+  company: z.string().min(1, "Company name must be at least 1 character").optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -58,11 +58,11 @@ export default function UserPage() {
       lastName: "",
       address: "",
       contactNumber: "",
-      telegramUsername: "",
       platformName: "",
       platformUsername: "",
       email: "",
       clientType: "",
+      company: "",
     },
   });
 
@@ -86,50 +86,53 @@ export default function UserPage() {
   };
 
   return (
-    <div className="mx-auto max-w-8xl ">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-          User Management
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          Create and manage your users efficiently
-        </p>
-      </div>
-
+    <div className="mx-auto max-w-8xl">
       {/* User Form */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800 sm:p-8">
-        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-          Create New User
-        </h2>
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-800 sm:p-5 lg:p-6">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Create New User
+          </h2>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Fill in the details below to create a new user account
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Personal Information Section */}
-          <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Personal Information
-              </h3>
+          <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
+            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <div className="mr-3 h-6 w-6 rounded-full bg-blue-100 p-1 dark:bg-blue-900/30">
+                <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              Personal Information
+            </h3>
+            
+            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
               
               {/* First Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className="group">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 ">
                   First Name *
                 </label>
                 <Controller
                   name="firstName"
                   control={control}
                   render={({ field }) => (
-                    <input
-                      {...field}
-                      type="text"
-                      className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                      placeholder="Enter first name"
-                    />
+                    <div className="relative">
+                      <input
+                        {...field}
+                        type="text"
+                       className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
+                        placeholder="Enter first name"
+                      />
+                    </div>
                   )}
                 />
                 {errors.firstName && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
                     {errors.firstName.message}
                   </p>
                 )}
@@ -162,7 +165,7 @@ export default function UserPage() {
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email *
+                  Email
                 </label>
                 <Controller
                   name="email"
@@ -179,6 +182,30 @@ export default function UserPage() {
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                     {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Company */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Company
+                </label>
+                <Controller
+                  name="company"
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
+                      placeholder="Enter company name"
+                    />
+                  )}
+                />
+                {errors.company && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.company.message}
                   </p>
                 )}
               </div>
@@ -212,17 +239,25 @@ export default function UserPage() {
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Contact & Address Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Contact & Address
-              </h3>
+          {/* Contact & Address Section */}
+          <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
+            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <div className="mr-3 h-6 w-6 rounded-full bg-green-100 p-1 dark:bg-green-900/30">
+                <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+              Contact & Address
+            </h3>
+            
+            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
               
               {/* Contact Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Contact Number *
+                  Contact Number
                 </label>
                 <Controller
                   name="contactNumber"
@@ -246,7 +281,7 @@ export default function UserPage() {
               {/* Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Address *
+                  Address
                 </label>
                 <Controller
                   name="address"
@@ -266,36 +301,17 @@ export default function UserPage() {
                   </p>
                 )}
               </div>
-
-              {/* Telegram Username */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Telegram Username *
-                </label>
-                <Controller
-                  name="telegramUsername"
-                  control={control}
-                  render={({ field }) => (
-                    <input
-                      {...field}
-                      type="text"
-                      className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                      placeholder="Enter Telegram username"
-                    />
-                  )}
-                />
-                {errors.telegramUsername && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.telegramUsername.message}
-                  </p>
-                )}
-              </div>
             </div>
           </div>
 
           {/* Social Media Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+          <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
+            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <div className="mr-3 h-6 w-6 rounded-full bg-purple-100 p-1 dark:bg-purple-900/30">
+                <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 4v2h6V4M9 4a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V6a2 2 0 00-2-2" />
+                </svg>
+              </div>
               Social Media Information
             </h3>
             
@@ -336,7 +352,7 @@ export default function UserPage() {
               {/* Platform Username */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {selectedPlatform ? `${selectedPlatform} Username` : "Platform Username"} *
+                  {selectedPlatform ? `${selectedPlatform} Username` : "Platform Username"}
                 </label>
                 <Controller
                   name="platformUsername"
@@ -360,29 +376,47 @@ export default function UserPage() {
           </div>
 
           {/* Form Actions */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={() => {
-                reset();
-                setSelectedPlatform("");
-              }}
-              className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            >
-              Reset Form
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? "Creating User..." : "Create User"}
-            </button>
+          <div className="rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 p-6 dark:from-blue-900/20 dark:to-purple-900/20">
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  reset();
+                  setSelectedPlatform("");
+                }}
+                className="rounded-xl border-2 border-gray-300 bg-white px-8 py-4 text-base font-semibold text-gray-700 shadow-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                <svg className="mr-2 inline h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Reset Form
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 text-base font-semibold text-white shadow-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105"
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="mr-2 inline h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating User...
+                  </>
+                ) : (
+                  <>
+                    <svg className="mr-2 inline h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Create User
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>
-
-      
     </div>
   );
 } 
