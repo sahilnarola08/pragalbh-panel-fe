@@ -5,7 +5,24 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
-  
+import { createPortal } from "react-dom";
+
+// Add custom CSS for modal z-index with maximum priority
+const modalStyles = `
+  .modal-overlay {
+    z-index: 2147483647 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+  }
+  .modal-content {
+    z-index: 2147483647 !important;
+    position: relative !important;
+  }
+`;
+
 // Form validation schema
 const orderSchema = z.object({
   clientName: z.string().min(2, "Client name must be at least 2 characters"),
@@ -22,6 +39,12 @@ const orderSchema = z.object({
   supplier: z.string().optional(),
   orderPlatform: z.string().min(1, "Please select order platform"),
   otherDetails: z.string().optional(),
+}).refine((data) => {
+  // Custom validation for minimum 5 images
+  return true; // We'll handle this in the component
+}, {
+  message: "Minimum 5 images required",
+  path: ["images"]
 });
 
 type OrderFormData = z.infer<typeof orderSchema>;
@@ -76,6 +99,10 @@ export default function OrderPage() {
   const [isOtherDetailsOpen, setIsOtherDetailsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+
 
   // Filter clients based on search query
   const filteredClients = mockClients.filter(client =>
@@ -84,7 +111,7 @@ export default function OrderPage() {
 
   // Click outside handler to close suggestions
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
@@ -143,22 +170,40 @@ export default function OrderPage() {
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      const newImages: string[] = [];
-      
-      Array.from(files).forEach((file) => {
-        if (uploadedImages.length + newImages.length < 5) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            newImages.push(e.target?.result as string);
-            if (newImages.length === Math.min(files.length, 5 - uploadedImages.length)) {
-              setUploadedImages([...uploadedImages, ...newImages]);
-            }
-          };
-          reader.readAsDataURL(file);
-        }
-      });
+    if (!files) return;
+
+    // Check if we can add more images (max 5)
+    const maxImages = 5;
+    const currentCount = uploadedImages.length;
+    const canAdd = maxImages - currentCount;
+
+    if (canAdd <= 0) {
+      alert('Maximum 5 images already uploaded!');
+      return;
     }
+
+    // Convert files to array and limit to what we can add
+    const fileArray = Array.from(files);
+    const filesToAdd = fileArray.slice(0, canAdd);
+
+    // Process each file
+    const promises = filesToAdd.map((file) => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          resolve(result);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Wait for all files to process, then update state
+    Promise.all(promises).then((newImageUrls) => {
+      setUploadedImages(prev => [...prev, ...newImageUrls]);
+      // Clear the input so user can select more files if needed
+      event.target.value = '';
+    });
   };
 
   const removeImage = (index: number) => {
@@ -216,12 +261,12 @@ export default function OrderPage() {
                           onFocus={() => setShowSuggestions(true)}
                         />
                       </div>
-                      
+
                       {/* Suggestions Dropdown */}
                       {showSuggestions && (field.value || searchQuery) && (
                         <div ref={suggestionsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
                           {/* Add new client option */}
-                          <div 
+                          <div
                             className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-600"
                             onClick={() => {
                               field.onChange(field.value || searchQuery);
@@ -231,10 +276,10 @@ export default function OrderPage() {
                           >
                             Add &apos;{field.value || searchQuery}&apos;
                           </div>
-                          
+
                           {/* Existing clients */}
                           {filteredClients.map((client) => (
-                            <div 
+                            <div
                               key={client.id}
                               className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300"
                               onClick={() => {
@@ -246,7 +291,7 @@ export default function OrderPage() {
                               {client.name}
                             </div>
                           ))}
-                          
+
                           {/* Add new value option */}
                           <div className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
                             <span>Add value</span>
@@ -269,7 +314,7 @@ export default function OrderPage() {
               {/* Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                 Delivery Address *
+                  Delivery Address *
                 </label>
                 <Controller
                   name="address"
@@ -364,22 +409,34 @@ export default function OrderPage() {
 
               {/* Product Images Upload */}
               <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Product Images 
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    disabled={uploadedImages.length >= 5}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {uploadedImages.length}/5 images uploaded
-                  </p>
+                <div className=" mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Product Images
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                      disabled={uploadedImages.length >= 5}
+                      className=" w-50 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-900/50"
+                    >
+                      Choose Files
+                    </button>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {uploadedImages.length}/5 images uploaded
+                    </span>
+                  </div>
                 </div>
+
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  disabled={uploadedImages.length >= 5}
+                  className="hidden"
+                />
 
                 {/* Uploaded Images Preview */}
                 {uploadedImages.length > 0 && (
@@ -387,27 +444,31 @@ export default function OrderPage() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       Uploaded Product Images:
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                      {uploadedImages.map((image, index) => (
-                        <div key={index} className="relative inline-block">
-                          <Image
-                            width={100}
-                            height={100}
-                            src={image} 
-                            alt={`Product ${index + 1}`}
-                            className="h-24 w-24 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                          >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
+                    <div className="flex flex-wrap gap-3">
+                                             {uploadedImages.map((image, index) => (
+                         <div key={index} className="relative group">
+                           <Image
+                             width={120}
+                             height={120}
+                             src={image}
+                             alt={`Product ${index + 1}`}
+                             className="h-24 w-24 rounded-lg object-cover border border-gray-300 dark:border-gray-600 shadow-md cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200"
+                             onClick={() => {
+                               setPreviewImage(image);
+                               setShowPreview(true);
+                             }}
+                           />
+                           <button
+                             type="button"
+                             onClick={() => removeImage(index)}
+                             className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1.5 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg transition-all duration-200"
+                           >
+                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                             </svg>
+                           </button>
+                         </div>
+                       ))}
                     </div>
                   </div>
                 )}
@@ -690,6 +751,72 @@ export default function OrderPage() {
           </div>
         </form>
       </div>
+
+      {/* Image Preview Modal - Rendered via Portal */}
+      {showPreview && previewImage && createPortal(
+        <div 
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 p-4" 
+          style={{ 
+            zIndex: 2147483647,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+          }}
+          onClick={() => {
+            setShowPreview(false);
+            setPreviewImage(null);
+          }}
+        >
+          <div 
+            className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl max-h-[80vh] overflow-hidden"
+            style={{ zIndex: 2147483647 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Order Image Preview
+              </h3>
+              <button
+                onClick={() => {
+                  setShowPreview(false);
+                  setPreviewImage(null);
+                }}
+                className="rounded-lg p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Image Container */}
+            <div className="p-4 flex items-center justify-center">
+              <img
+                src={previewImage}
+                alt="Product Preview"
+                className="max-w-full max-h-[60vh] object-contain rounded-lg"
+              />
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="flex items-center justify-center p-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => {
+                  setShowPreview(false);
+                  setPreviewImage(null);
+                }}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 } 
