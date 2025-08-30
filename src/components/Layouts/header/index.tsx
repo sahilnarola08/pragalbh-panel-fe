@@ -8,9 +8,46 @@ import { MenuIcon } from "./icons";
 import { Notification } from "./notification";
 import { ThemeToggleSwitch } from "./theme-toggle";
 import { UserInfo } from "./user-info";
+import { usePathname } from "next/navigation";
 
 export function Header() {
   const { toggleSidebar, isMobile, isCollapsed, toggleCollapsed } = useSidebarContext();
+  const pathname = usePathname();
+
+  const getPageTitle = () => {
+    switch (pathname) {
+      case '/':
+        return 'Dashboard';
+      case '/user':
+        return 'User Management';
+      case '/order':
+        return 'Order Management';
+      case '/income':
+        return 'Income Management';
+      case '/product':
+        return 'Product Management';
+      case '/supplier':
+        return 'Supplier Management';
+      case '/customer':
+        return 'Customer Management';
+      case '/expense':
+        return 'Expense Management';
+      case '/platform':
+        return 'Platform Management';
+      case '/profile':
+        return 'Profile Management';
+      case '/auth/sign-in':
+        return 'Sign In';
+      case '/auth/sign-up':
+        return 'Sign Up ';
+      case '/auth/forgot-password':
+        return 'Forgot Password ';
+      case '/auth/reset-password':
+        return 'Reset Password';
+      default:
+        return 'Dashboard';
+    }
+  }
 
   const handleSidebarToggle = () => {
     if (isMobile) {
@@ -20,37 +57,25 @@ export function Header() {
     }
   };
 
+
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-sm dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-3 py-3 shadow-sm dark:border-stroke-dark dark:bg-gray-dark sm:px-4 sm:py-4 md:px-5 md:py-5 2xl:px-10">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
         <button
           onClick={handleSidebarToggle}
-          className="rounded-lg border px-1.5 py-1 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A]"
+          className="rounded-lg border p-1.5 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A] sm:px-2 sm:py-1.5"
         >
           <MenuIcon />
           <span className="sr-only">Toggle Sidebar</span>
         </button>
-
-        {isMobile && (
-          <Link href={"/"} className="ml-2 max-[430px]:hidden min-[375px]:ml-4">
-            <Image
-              src={"/images/logo/logo-icon.svg"}
-              width={32}
-              height={32}
-              alt=""
-              role="presentation"
-            />
-          </Link>
-        )}
-
-        <div className="block">
-          <h1 className="mb-0.5 text-heading-5 font-bold text-dark dark:text-white lg:text-heading-5 sm:text-heading-6">
-            Dashboard
+        <div className="block min-w-0 flex-1">
+          <h1 className="mb-0.5 text-sm font-bold text-dark dark:text-white sm:text-base md:text-lg lg:text-heading-5 truncate">
+            {getPageTitle()}
           </h1>
         </div>
       </div>
 
-      <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
+      <div className="flex flex-1 items-center justify-end gap-1 sm:gap-2 md:gap-3 lg:gap-4">
         {/* <div className="relative w-full max-w-[300px]">
           <input
             type="search"
