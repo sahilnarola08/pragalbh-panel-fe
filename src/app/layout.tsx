@@ -28,13 +28,13 @@ export default function RootLayout({ children }: PropsWithChildren) {
         <Providers>
           <NextTopLoader color="#5750F1" showSpinner={false} />
 
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen bg-gray-2 dark:bg-[#020d1a]">
             <Sidebar />
 
-            <div className="w-full bg-gray-2 dark:bg-[#020d1a]">
+            <div className="flex-1 flex flex-col min-w-0 relative">
               <Header />
 
-              <main className="isolate mx-auto w-full max-w-screen-2xl overflow-hidden p-4 md:p-6 2xl:p-10">
+              <main className="flex-1 w-full px-0 py-4 md:px-6 md:py-6 2xl:px-10 2xl:py-10 overflow-x-auto">
                 {children}
               </main>
             </div>

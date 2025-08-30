@@ -22,6 +22,8 @@ export function Header() {
         return 'User Management';
       case '/order':
         return 'Order Management';
+      case '/order-management':
+        return 'Order Management';
       case '/income':
         return 'Income Management';
       case '/product':

@@ -114,9 +114,9 @@ function SortableItem({ id, orderId, date }: OrderItem) {
       {...listeners}
       className="bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-move hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300"
     >
-      <div className="text-center">
-        <p className="text-lg font-bold text-gray-800 mb-2">{orderId}</p>
-        <p className="text-sm text-gray-600">{date}</p>
+      <div className="text-left">
+        <p className="text-sm font-bold text-gray-800 mb-1">{orderId}</p>
+        <p className="text-xs text-gray-600">{date}</p>
       </div>
     </div>
   );
@@ -180,7 +180,7 @@ export default function OrderManagementPage() {
   };
 
   return (
-    <div className="h-auto p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="h-min-screen p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Kanban Board */}
       <div className="max-w-8xl mx-auto ">
         <div className="flex gap-2 overflow-x-auto pb-6">
@@ -192,7 +192,7 @@ export default function OrderManagementPage() {
             {Object.entries(columns).map(([colId, col]) => (
               <div
                 key={colId}
-                className={`bg-white w-72 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px]`}
+                className={`bg-white w-72 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] `}
               >
                 {/* Column Header */}
                 <div className="p-4 border-b border-gray-200">
@@ -200,12 +200,11 @@ export default function OrderManagementPage() {
                     <h2 className="text-lg font-semibold text-gray-700 text-xs">
                       {col.title}
                     </h2>
-                    
                   </div>
                 </div>
 
                 {/* Column Content */}
-                <div className="flex-1 p-4">
+                <div className="flex-1 p-2">
                   <SortableContext
                     items={col.items.map((i) => i.id)}
                     strategy={verticalListSortingStrategy}
@@ -216,9 +215,9 @@ export default function OrderManagementPage() {
                   </SortableContext>
                   
                   {/* Add Card Button */}
-                  <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50">
+                  <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50">
                     <div className="flex items-center justify-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
                       Add Order
