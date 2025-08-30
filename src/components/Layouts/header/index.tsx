@@ -15,37 +15,41 @@ export function Header() {
   const pathname = usePathname();
 
   const getPageTitle = () => {
-  switch (pathname) {
-    case '/':
-      return 'Dashboard';
-    case '/user':
-      return 'User Management';
-    case '/product':
-      return 'Product Management';
-    case '/order':
-      return 'Order Management';
-    case '/customer':
-      return 'Customer Management';
-    case '/income':
-      return 'Income Management';
-    case '/expense':
-      return 'Expense Management';
-    case '/platform':
-      return 'Platform Management';
-    case '/profile':
-      return 'Profile Management';
-    case '/auth/sign-in':
-      return 'Sign In';
-    case '/auth/sign-up':
-      return 'Sign Up ';
-    case '/auth/forgot-password':
-      return 'Forgot Password ';
-    case '/auth/reset-password':
-      return 'Reset Password';
-    default:
-      return 'Dashboard';
+    switch (pathname) {
+      case '/':
+        return 'Dashboard';
+      case '/user':
+        return 'User Management';
+      case '/order':
+        return 'Order Management';
+      case '/order-management':
+        return 'Order Management';
+      case '/income':
+        return 'Income Management';
+      case '/product':
+        return 'Product Management';
+      case '/supplier':
+        return 'Supplier Management';
+      case '/customer':
+        return 'Customer Management';
+      case '/expense':
+        return 'Expense Management';
+      case '/platform':
+        return 'Platform Management';
+      case '/profile':
+        return 'Profile Management';
+      case '/auth/sign-in':
+        return 'Sign In';
+      case '/auth/sign-up':
+        return 'Sign Up ';
+      case '/auth/forgot-password':
+        return 'Forgot Password ';
+      case '/auth/reset-password':
+        return 'Reset Password';
+      default:
+        return 'Dashboard';
+    }
   }
-}
 
   const handleSidebarToggle = () => {
     if (isMobile) {
@@ -55,7 +59,7 @@ export function Header() {
     }
   };
 
-  
+
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-3 py-3 shadow-sm dark:border-stroke-dark dark:bg-gray-dark sm:px-4 sm:py-4 md:px-5 md:py-5 2xl:px-10">
       <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
