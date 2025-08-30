@@ -17,6 +17,12 @@ export const NAV_DATA = [
         items: [],
       },
       {
+        title: "Order Management",
+        icon: Icons.OrderManagement,
+        url: "/order-management",
+        items: [],
+      },
+      {
         title: "Income",
         icon: Icons.PieChart,
         url: "/income",
