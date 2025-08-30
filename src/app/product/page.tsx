@@ -315,7 +315,7 @@ export default function ProductPage() {
           </div>
         </form>
       </div>
-
+      
       {/* Image Preview Modal - Rendered via Portal */}
       {showPreview && previewImage && createPortal(
         <div
@@ -377,7 +377,7 @@ export default function ProductPage() {
                 Close Preview
               </button>
             </div>
-          </div>
+      </div>
         </div>,
         document.body
       )}
