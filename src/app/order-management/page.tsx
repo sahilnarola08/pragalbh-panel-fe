@@ -57,7 +57,7 @@ const initialData: ColumnsData = {
   },
   "pending-order": {
     title: "Pending Order",
-    color: "bg-yellow-50 border-yellow-200",
+    color: " border-yellow-200",
     items: [
       { id: "1", orderId: "ORD-1001", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
       { id: "2", orderId: "ORD-1002", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
@@ -226,13 +226,13 @@ export default function OrderManagementPage() {
   // Show loading state until client-side is ready to prevent hydration mismatch
   if (!isClient) {
     return (
-      <div className="h-min-screen p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="max-w-8xl mx-auto">
+      <div className="h-100 p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 w-full   ">
+        <div className="max-w-8xl mx-auto ">
           <div className="flex gap-2 overflow-x-auto pb-6">
             {Object.entries(initialData).map(([colId, col]) => (
               <div
                 key={colId}
-                className={`bg-white w-72 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px]`}
+                className={`bg-white w-80 sm:w-80 md:w-80 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] scroll-hidden`}
               >
                 <div className="p-4 border-b border-gray-200">
                   <div className="flex items-center justify-center mb-2">
@@ -275,16 +275,17 @@ export default function OrderManagementPage() {
     <div className="h-min-screen p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Kanban Board */}
       <div className="max-w-8xl mx-auto">
-        <div className="flex gap-2 overflow-x-auto pb-6">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          {/* All columns in a single scrollable row */}
+          <div className="flex gap-4 overflow-x-auto pb-4">
             {Object.entries(columns).map(([colId, col]) => (
               <div
                 key={colId}
-                className={`bg-white w-72 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px]`}
+                className={`bg-white w-80 sm:w-80 md:w-80 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0`}
               >
                 {/* Column Header */}
                 <div className="p-4 border-b border-gray-200">
@@ -318,8 +319,8 @@ export default function OrderManagementPage() {
                 </div>
               </div>
             ))}
-          </DndContext>
-        </div>
+          </div>
+        </DndContext>
       </div>
     </div>
   );
