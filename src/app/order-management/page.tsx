@@ -41,25 +41,25 @@ const initialData: ColumnsData = {
     title: "Over Due",
     color: "bg-red-50 border-red-200",
     items: [
-      { id: "1", orderId: "ORD-10001", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
-      { id: "2", orderId: "ORD-10002", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
-      { id: "3", orderId: "ORD-10003", date: "2025-08-28", productName: "Pearl Earrings Set", image: "/images/ring-image.png" },
+      { id: "15", orderId: "ORD-10001", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
+      { id: "16", orderId: "ORD-10002", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
+      { id: "17", orderId: "ORD-10003", date: "2025-08-28", productName: "Pearl Earrings Set", image: "/images/ring-image.png" },
     ],
   },
   "stock": {
     title: "Stock",
     color: "bg-green-50 border-green-200",
     items: [
-      { id: "1", orderId: "ORD-10004", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
-      { id: "2", orderId: "ORD-10005", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
-      { id: "3", orderId: "ORD-10006", date: "2025-08-28", productName: "Pearl Earrings Set", image: "/images/ring-image.png" },
+      { id: "18", orderId: "ORD-10004", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
+      { id: "19", orderId: "ORD-10005", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
+      { id: "20", orderId: "ORD-10006", date: "2025-08-28", productName: "Pearl Earrings Set", image: "/images/ring-image.png" },
     ],
   },
   "pending-order": {
     title: "Pending Order",
     color: " border-yellow-200",
     items: [
-      { id: "1", orderId: "ORD-1001", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
+      { id: "", orderId: "ORD-1001", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
       { id: "2", orderId: "ORD-1002", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
       { id: "3", orderId: "ORD-1003", date: "2025-08-28", productName: "Pearl Earrings Set", image: "/images/ring-image.png" },
     ],
@@ -228,7 +228,7 @@ export default function OrderManagementPage() {
     return (
       <div className="h-100 p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 w-full   ">
         <div className="max-w-8xl mx-auto ">
-          <div className="flex gap-2 overflow-x-auto pb-6">
+          <div className="flex gap-2 overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {Object.entries(initialData).map(([colId, col]) => (
               <div
                 key={colId}
@@ -272,16 +272,16 @@ export default function OrderManagementPage() {
   }
 
   return (
-    <div className="h-min-screen p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="h-[calc(90vh-100px)] p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Kanban Board */}
-      <div className="max-w-8xl mx-auto">
+      <div className="max-w-8xl mx-auto h-[calc(90vh-100px)]">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
           {/* All columns in a single scrollable row */}
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100  ">  
             {Object.entries(columns).map(([colId, col]) => (
               <div
                 key={colId}
