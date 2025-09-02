@@ -93,6 +93,9 @@ const orderPlatforms = [
   "Other",
 ];
 
+// Import the reusable modal component
+import ImagePreviewModal from "@/components/atoms/ImagePreviewModal";
+
 export default function OrderPage() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -267,7 +270,7 @@ export default function OrderPage() {
                         <div ref={suggestionsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
                           {/* Add new client option */}
                           <div
-                            className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-600"
+                            className="px-3 py-2 bg-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-600"
                             onClick={() => {
                               field.onChange(field.value || searchQuery);
                               setShowSuggestions(false);
@@ -293,12 +296,12 @@ export default function OrderPage() {
                           ))}
 
                           {/* Add new value option */}
-                          <div className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                          {/* <div className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
                             <span>Add value</span>
                             <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
-                          </div>
+                          </div> */}
                         </div>
                       )}
                     </div>
@@ -445,30 +448,30 @@ export default function OrderPage() {
                       Uploaded Product Images:
                     </label>
                     <div className="flex flex-wrap gap-3">
-                                             {uploadedImages.map((image, index) => (
-                         <div key={index} className="relative group">
-                           <Image
-                             width={120}
-                             height={120}
-                             src={image}
-                             alt={`Product ${index + 1}`}
-                             className="h-24 w-24 rounded-lg object-cover border border-gray-300 dark:border-gray-600 shadow-md cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200"
-                             onClick={() => {
-                               setPreviewImage(image);
-                               setShowPreview(true);
-                             }}
-                           />
-                           <button
-                             type="button"
-                             onClick={() => removeImage(index)}
-                             className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1.5 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg transition-all duration-200"
-                           >
-                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                             </svg>
-                           </button>
-                         </div>
-                       ))}
+                      {uploadedImages.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <Image
+                            width={120}
+                            height={120}
+                            src={image}
+                            alt={`Product ${index + 1}`}
+                            className="h-24 w-24 rounded-lg object-cover border border-gray-300 dark:border-gray-600 shadow-md cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200"
+                            onClick={() => {
+                              setPreviewImage(image);
+                              setShowPreview(true);
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1.5 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg transition-all duration-200"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -752,71 +755,17 @@ export default function OrderPage() {
         </form>
       </div>
 
-      {/* Image Preview Modal - Rendered via Portal */}
-      {showPreview && previewImage && createPortal(
-        <div 
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 p-4" 
-          style={{ 
-            zIndex: 2147483647,
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0
-          }}
-          onClick={() => {
-            setShowPreview(false);
-            setPreviewImage(null);
-          }}
-        >
-          <div 
-            className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl max-h-[80vh] overflow-hidden"
-            style={{ zIndex: 2147483647 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Order Image Preview
-              </h3>
-              <button
-                onClick={() => {
-                  setShowPreview(false);
-                  setPreviewImage(null);
-                }}
-                className="rounded-lg p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* Image Container */}
-            <div className="p-4 flex items-center justify-center">
-              <img
-                src={previewImage}
-                alt="Product Preview"
-                className="max-w-full max-h-[60vh] object-contain rounded-lg"
-              />
-            </div>
-            
-            {/* Modal Footer */}
-            <div className="flex items-center justify-center p-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => {
-                  setShowPreview(false);
-                  setPreviewImage(null);
-                }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        isOpen={showPreview}
+        onClose={() => {
+          setShowPreview(false);
+          setPreviewImage(null);
+        }}
+        imageUrl={previewImage}
+        title="Order Image Preview"
+        altText="Product Preview"
+      />
     </div>
   );
 } 
