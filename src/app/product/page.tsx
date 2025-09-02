@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
-import { createPortal } from "react-dom";
+import ImagePreviewModal from "@/components/atoms/ImagePreviewModal";
 
 // Form validation schema
 const productSchema = z.object({
@@ -316,71 +316,17 @@ export default function ProductPage() {
         </form>
       </div>
       
-      {/* Image Preview Modal - Rendered via Portal */}
-      {showPreview && previewImage && createPortal(
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 p-4"
-          style={{
-            zIndex: 2147483647,
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0
-          }}
-          onClick={() => {
-            setShowPreview(false);
-            setPreviewImage(null);
-          }}
-        >
-          <div
-            className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl max-h-[80vh] overflow-hidden"
-            style={{ zIndex: 2147483647 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Product Image Preview
-              </h3>
-              <button
-                onClick={() => {
-                  setShowPreview(false);
-                  setPreviewImage(null);
-                }}
-                className="rounded-lg p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Image Container */}
-            <div className="p-4 flex items-center justify-center">
-              <img
-                src={previewImage}
-                alt="Product Preview"
-                className="max-w-full max-h-[60vh] object-contain rounded-lg"
-              />
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-center p-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => {
-                  setShowPreview(false);
-                  setPreviewImage(null);
-                }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-              >
-                Close Preview
-              </button>
-            </div>
-      </div>
-        </div>,
-        document.body
-      )}
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        isOpen={showPreview}
+        onClose={() => {
+          setShowPreview(false);
+          setPreviewImage(null);
+        }}
+        imageUrl={previewImage}
+        title="Product Image Preview"
+        altText="Product Preview"
+      />
     </div>
   );
 } 
