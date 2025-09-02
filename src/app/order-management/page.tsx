@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import CheckListModel from "@/components/atoms/CheckListModel";
 import {
   DndContext,
   closestCenter,
@@ -164,6 +165,7 @@ function SortableItem({ id, orderId, date, productName, image }: OrderItem) {
 export default function OrderManagementPage() {
   const [columns, setColumns] = useState<ColumnsData>(initialData);
   const [isClient, setIsClient] = useState(false);
+  const [isCheckListModalOpen, setIsCheckListModalOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -223,6 +225,17 @@ export default function OrderManagementPage() {
     return Object.values(columns).reduce((total, col) => total + col.items.length, 0);
   };
 
+  // CheckList Modal handlers
+  const handleCheckListSave = (checkedItems: any[]) => {
+    console.log("CheckList saved:", checkedItems);
+    // Here you can handle the saved checklist data
+    // For example, update order status, send to API, etc.
+  };
+
+  const handleCheckListCancel = () => {
+    console.log("CheckList cancelled");
+  };
+
   // Show loading state until client-side is ready to prevent hydration mismatch
   if (!isClient) {
     return (
@@ -273,6 +286,20 @@ export default function OrderManagementPage() {
 
   return (
     <div className="h-[calc(90vh-100px)] p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header with CheckList Button */}
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
+        <button
+          onClick={() => setIsCheckListModalOpen(true)}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Quality Check List
+        </button>
+      </div>
+
       {/* Kanban Board */}
       <div className="max-w-8xl mx-auto h-[calc(90vh-100px)]">
         <DndContext
@@ -322,6 +349,17 @@ export default function OrderManagementPage() {
           </div>
         </DndContext>
       </div>
+
+      {/* CheckList Modal */}
+      <CheckListModel
+        isOpen={isCheckListModalOpen}
+        onClose={() => setIsCheckListModalOpen(false)}
+        title="Quality Check List"
+        onSave={handleCheckListSave}
+        onCancel={handleCheckListCancel}
+        showDateTime={true}
+        showRah={true}
+      />
     </div>
   );
 } 
