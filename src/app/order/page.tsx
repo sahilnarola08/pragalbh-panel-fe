@@ -267,7 +267,7 @@ export default function OrderPage() {
                         <div ref={suggestionsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
                           {/* Add new client option */}
                           <div
-                            className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-600"
+                            className="px-3 py-2 bg-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-600"
                             onClick={() => {
                               field.onChange(field.value || searchQuery);
                               setShowSuggestions(false);
@@ -293,12 +293,12 @@ export default function OrderPage() {
                           ))}
 
                           {/* Add new value option */}
-                          <div className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                          {/* <div className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
                             <span>Add value</span>
                             <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
-                          </div>
+                          </div> */}
                         </div>
                       )}
                     </div>
