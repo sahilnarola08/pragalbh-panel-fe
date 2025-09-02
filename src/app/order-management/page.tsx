@@ -134,7 +134,7 @@ function SortableItem({ id, orderId, date, productName, image }: OrderItem) {
       style={style}
       {...attributes}
       {...listeners}
-      className="bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-move hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative"
+      className="bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative"
     >
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
@@ -180,7 +180,18 @@ export default function OrderManagementPage() {
     const [activeCol, activeItem] = findColumn(active.id);
     const [overCol] = findColumn(over.id);
 
-    if (activeCol && overCol) {
+    if (activeCol && overCol && activeItem) {
+      // Check if dragging to factory-process from specific columns
+      const sourceColumns = ["over-due", "stock", "pending-order"];
+      
+      if (overCol === "factory-process" && sourceColumns.includes(activeCol)) {
+        // Store pending drag info and open checklist modal
+        setPendingDragItem(activeItem);
+        setPendingDragSource(activeCol);
+        setIsCheckListModalOpen(true);
+        return; // Don't complete the drag yet
+      }
+
       if (activeCol === overCol) {
         // Move inside same column
         const items = [...columns[activeCol].items];
@@ -193,7 +204,7 @@ export default function OrderManagementPage() {
           [activeCol]: { ...columns[activeCol], items: newItems },
         });
       } else {
-        // Move between columns
+        // Move between columns (normal case)
         const sourceItems = [...columns[activeCol].items];
         const destItems = [...columns[overCol].items];
         const movingItem = sourceItems.find((i) => i.id === active.id);
@@ -226,14 +237,37 @@ export default function OrderManagementPage() {
   };
 
   // CheckList Modal handlers
+  const [pendingDragItem, setPendingDragItem] = useState<OrderItem | null>(null);
+  const [pendingDragSource, setPendingDragSource] = useState<string | null>(null);
+
   const handleCheckListSave = (checkedItems: any[]) => {
     console.log("CheckList saved:", checkedItems);
-    // Here you can handle the saved checklist data
-    // For example, update order status, send to API, etc.
+    
+    // Complete the drag operation if checklist is passed
+    if (pendingDragItem && pendingDragSource) {
+      const sourceItems = [...columns[pendingDragSource].items];
+      const destItems = [...columns["factory-process"].items];
+      
+      setColumns({
+        ...columns,
+        [pendingDragSource]: {
+          ...columns[pendingDragSource],
+          items: sourceItems.filter((i) => i.id !== pendingDragItem.id),
+        },
+        ["factory-process"]: { ...columns["factory-process"], items: [...destItems, pendingDragItem] },
+      });
+      
+      // Reset pending drag state
+      setPendingDragItem(null);
+      setPendingDragSource(null);
+    }
   };
 
   const handleCheckListCancel = () => {
     console.log("CheckList cancelled");
+    // Reset pending drag state
+    setPendingDragItem(null);
+    setPendingDragSource(null);
   };
 
   // Show loading state until client-side is ready to prevent hydration mismatch
@@ -286,18 +320,9 @@ export default function OrderManagementPage() {
 
   return (
     <div className="h-[calc(90vh-100px)] p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header with CheckList Button */}
-      <div className="mb-4 flex items-center justify-between">
+      {/* Header */}
+      <div className="mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
-        <button
-          onClick={() => setIsCheckListModalOpen(true)}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Quality Check List
-        </button>
       </div>
 
       {/* Kanban Board */}
