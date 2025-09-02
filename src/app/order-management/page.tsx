@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import CheckListModel from "@/components/atoms/CheckListModel";
 import {
   DndContext,
   closestCenter,
@@ -18,12 +19,21 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+
+interface ChecklistItem {
+  id: string;
+  label: string;
+  checked: boolean;
+  required?: boolean;
+}
+
 interface OrderItem {
   id: string;
   orderId: string;
   date: string;
   productName: string;
   image: string;
+  checklist?: ChecklistItem[]; 
 }
 
 interface ColumnData {
@@ -117,14 +127,49 @@ const initialData: ColumnsData = {
   },
 };
 
-// 🔹 Sortable Card Component - Enhanced with image, product name, and tooltip
-function SortableItem({ id, orderId, date, productName, image }: OrderItem) {
+const checklistTemplate: ChecklistItem[] = [
+  { id: "diamonds", label: "Check Diamonds", checked: false, required: true },
+  { id: "movements", label: "Check Movements", checked: false, required: true },
+  { id: "crown", label: "Check Crown", checked: false, required: true },
+  { id: "datetime", label: "Check Day Date Time", checked: false, required: true },
+  { id: "rah", label: "Check RAH", checked: false, required: true },
+];
+
+const withChecklists = (data: ColumnsData): ColumnsData => {
+  const target = new Set(["over-due", "stock", "pending-order"]);
+  const result: ColumnsData = {};
+  for (const key in data) {
+    const col = data[key];
+    const items = col.items.map((it) =>
+      target.has(key)
+        ? { ...it, checklist: it.checklist ?? checklistTemplate.map(c => ({ ...c })) }
+        : it
+    );
+    result[key] = { ...col, items };
+  }
+  return result;
+};
+
+//  Sortable Card Component - Enhanced with image, product name, and tooltip
+function SortableItem({ id, orderId, date, productName, image, onClickItem }: OrderItem & { onClickItem?: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id });
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+  };
+
+  // track mouse down/up to differentiate drag vs click
+  const handleMouseDown = (e: React.MouseEvent) => {
+    (e.currentTarget as HTMLElement).dataset.down = String(Date.now());
+  };
+  const handleMouseUp = (e: React.MouseEvent) => {
+    const downTime = Number((e.currentTarget as HTMLElement).dataset.down);
+    const upTime = Date.now();
+    if (upTime - downTime < 200) {
+      // treat as click if less than 200ms press
+      onClickItem?.();
+    }
   };
 
   return (
@@ -133,7 +178,9 @@ function SortableItem({ id, orderId, date, productName, image }: OrderItem) {
       style={style}
       {...attributes}
       {...listeners}
-      className="bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-move hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative"
+      className="bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative"
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
     >
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
@@ -162,53 +209,18 @@ function SortableItem({ id, orderId, date, productName, image }: OrderItem) {
 }
 
 export default function OrderManagementPage() {
-  const [columns, setColumns] = useState<ColumnsData>(initialData);
+  const [columns, setColumns] = useState<ColumnsData>(() => withChecklists(initialData));
   const [isClient, setIsClient] = useState(false);
+  const [isCheckListModalOpen, setIsCheckListModalOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState<OrderItem | null>(null);
+  const [pendingDragItem, setPendingDragItem] = useState<OrderItem | null>(null);
+  const [pendingDragSource, setPendingDragSource] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const sensors = useSensors(useSensor(PointerSensor));
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const [activeCol, activeItem] = findColumn(active.id);
-    const [overCol] = findColumn(over.id);
-
-    if (activeCol && overCol) {
-      if (activeCol === overCol) {
-        // Move inside same column
-        const items = [...columns[activeCol].items];
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        const newItems = arrayMove(items, oldIndex, newIndex);
-
-        setColumns({
-          ...columns,
-          [activeCol]: { ...columns[activeCol], items: newItems },
-        });
-      } else {
-        // Move between columns
-        const sourceItems = [...columns[activeCol].items];
-        const destItems = [...columns[overCol].items];
-        const movingItem = sourceItems.find((i) => i.id === active.id);
-
-        if (movingItem) {
-          setColumns({
-            ...columns,
-            [activeCol]: {
-              ...columns[activeCol],
-              items: sourceItems.filter((i) => i.id !== active.id),
-            },
-            [overCol]: { ...columns[overCol], items: [...destItems, movingItem] },
-          });
-        }
-      }
-    }
-  };
 
   const findColumn = (id: string | number): [string | null, OrderItem | null] => {
     const idStr = id.toString();
@@ -219,10 +231,131 @@ export default function OrderManagementPage() {
     return [null, null];
   };
 
-  const getTotalOrders = (): number => {
-    return Object.values(columns).reduce((total, col) => total + col.items.length, 0);
+  const moveItem = (fromCol: string, toCol: string, itemId: string) => {
+    setColumns(prev => {
+      const sourceItems = [...prev[fromCol].items];
+      const destItems = [...prev[toCol].items];
+      const moving = sourceItems.find(i => i.id === itemId);
+      if (!moving) return prev;
+
+      return {
+        ...prev,
+        [fromCol]: { ...prev[fromCol], items: sourceItems.filter(i => i.id !== itemId) },
+        [toCol]: { ...prev[toCol], items: [...destItems, moving] },
+      };
+    });
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const [activeCol, draggedItem] = findColumn(active.id);
+    const [overCol] = findColumn(over.id);
+    if (!activeCol || !overCol || !draggedItem) return;
+
+    const sourceColumns = ["over-due", "stock", "pending-order"];
+
+    // Gate only when moving into Factory Process from the 3 source columns
+    if (overCol === "factory-process" && sourceColumns.includes(activeCol)) {
+      const allChecked = (draggedItem.checklist ?? []).every(c => c.checked);
+      if (allChecked) {
+        // allow move directly
+        moveItem(activeCol, "factory-process", draggedItem.id);
+        return;
+      } else {
+        // open modal to complete checks, then move after save
+        setPendingDragItem(draggedItem);
+        setPendingDragSource(activeCol);
+        setActiveItem(draggedItem);
+        setIsCheckListModalOpen(true);
+        return; // stop normal DnD flow
+      }
+    }
+
+    // Your original reordering / cross-column move keeps working
+    if (activeCol === overCol) {
+      const items = [...columns[activeCol].items];
+      const oldIndex = items.findIndex((i) => i.id === active.id);
+      const newIndex = items.findIndex((i) => i.id === over.id);
+      const newItems = arrayMove(items, oldIndex, newIndex);
+
+      setColumns({
+        ...columns,
+        [activeCol]: { ...columns[activeCol], items: newItems },
+      });
+    } else {
+      const sourceItems = [...columns[activeCol].items];
+      const destItems = [...columns[overCol].items];
+      const movingItem = sourceItems.find((i) => i.id === active.id);
+
+      if (movingItem) {
+        setColumns({
+          ...columns,
+          [activeCol]: {
+            ...columns[activeCol],
+            items: sourceItems.filter((i) => i.id !== active.id),
+          },
+          [overCol]: { ...columns[overCol], items: [...destItems, movingItem] },
+        });
+      }
+    }
+  };
+  
+  const handleCheckListSave = (checkedItems: ChecklistItem[]) => {
+    setColumns(prev => {
+      let updated: ColumnsData = { ...prev };
+
+      // update checklist on the active item wherever it is
+      for (const key in updated) {
+        updated[key] = {
+          ...updated[key],
+          items: updated[key].items.map(i =>
+            activeItem && i.id === activeItem.id ? { ...i, checklist: checkedItems } : i
+          ),
+        };
+      }
+
+      // if we came from a drag gate, and all are checked, move it now
+      if (pendingDragItem && pendingDragSource) {
+        const allChecked = checkedItems.every(c => c.checked);
+        if (allChecked) {
+          const srcItems = updated[pendingDragSource].items;
+          const exists = srcItems.find(i => i.id === pendingDragItem.id);
+          if (exists) {
+            updated[pendingDragSource] = {
+              ...updated[pendingDragSource],
+              items: srcItems.filter(i => i.id !== pendingDragItem.id),
+            };
+            updated["factory-process"] = {
+              ...updated["factory-process"],
+              items: [...updated["factory-process"].items, { ...exists, checklist: checkedItems }],
+            };
+          }
+        }
+      }
+
+      return updated;
+    });
+
+    // reset gate/click state
+    setPendingDragItem(null);
+    setPendingDragSource(null);
+    setActiveItem(null);
+  };
+
+ const handleCheckListCancel = () => {
+    setPendingDragItem(null);
+    setPendingDragSource(null);
+    setActiveItem(null);
+  };
+
+  const clickable = new Set(["over-due", "stock", "pending-order"]);
+  const handleItemClick = (item: OrderItem, colId: string) => {
+    if (!clickable.has(colId)) return;
+    setActiveItem(item);
+    setIsCheckListModalOpen(true);
+  };
   // Show loading state until client-side is ready to prevent hydration mismatch
   if (!isClient) {
     return (
@@ -270,9 +403,12 @@ export default function OrderManagementPage() {
       </div>
     );
   }
-
   return (
     <div className="h-[calc(90vh-100px)] p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header */}
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
+      </div>
       {/* Kanban Board */}
       <div className="max-w-8xl mx-auto h-[calc(90vh-100px)]">
         <DndContext
@@ -303,7 +439,9 @@ export default function OrderManagementPage() {
                     strategy={verticalListSortingStrategy}
                   >
                     {col.items.map((item) => (
-                      <SortableItem key={item.id} {...item} />
+                      <SortableItem key={item.id} {...item}
+                      onClickItem={() => handleItemClick(item, colId)}
+                       />
                     ))}
                   </SortableContext>
                   
@@ -322,6 +460,18 @@ export default function OrderManagementPage() {
           </div>
         </DndContext>
       </div>
+      {activeItem && (
+        <CheckListModel
+          isOpen={isCheckListModalOpen}
+          onClose={() => setIsCheckListModalOpen(false)}
+          title={`Quality Check List - ${activeItem.orderId}`}
+          items={activeItem.checklist}
+          onSave={handleCheckListSave}
+          onCancel={handleCheckListCancel}
+          showDateTime={true}
+          showRah={true}
+        />
+      )}
     </div>
   );
 } 
