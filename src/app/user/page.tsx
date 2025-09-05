@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { register } from "@/apiStore/api";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Form validation schema
 const userSchema = z.object({
@@ -55,6 +58,9 @@ export default function UserPage() {
   const [platformEntries, setPlatformEntries] = useState<PlatformEntry[]>([]);
   const [newPlatform, setNewPlatform] = useState("");
   const [newUsername, setNewUsername] = useState("");
+
+  // Use useRef to prevent multiple API calls
+  const isSubmittingRef = useRef(false);
 
   const {
     control,
@@ -110,27 +116,61 @@ export default function UserPage() {
   };
 
   const onSubmit = async (data: UserFormData) => {
+    // Prevent multiple API calls using useRef
+    if (isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("User data:", data);
-      console.log("Platform entries:", platformEntries);
-      alert("User created successfully!");
+      const payload = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        address: data.address || "",
+        contactNumber: data.contactNumber || "",
+        email: data.email || "",
+        clientType: data.clientType,
+        company: data.company || "",
+        platforms: platformEntries.map(entry => ({
+          platformName: entry.platform,
+          platformUsername: entry.username
+        }))
+      };
+      const response = await register(payload);
+      
+      console.log("User registration successful:", response);
+      
+      // Show success toast
+      toast.success("User Created Successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      // Reset form and state
       reset();
       setSelectedPlatform("");
       setPlatformEntries([]);
       setIsSocialAccordionOpen(false);
-    } catch (error) {
+
+    } catch (error: any) {
       console.error("Error creating user:", error);
-      alert("Error creating user. Please try again.");
     } finally {
       setIsSubmitting(false);
+      isSubmittingRef.current = false;
     }
   };
 
   return (
     <div className="mx-auto max-w-8xl">
+      {/* Toast Container */}
+      <ToastContainer />
+
       {/* User Form */}
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-800 sm:p-5 lg:p-6">
         <div className="mb-8 text-center">
