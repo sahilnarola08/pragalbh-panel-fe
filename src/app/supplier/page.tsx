@@ -4,13 +4,18 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { addSupplier } from "@/apiStore/api";
+import { toast } from "react-toastify";
 
 // Form validation schema
 const supplierSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
-  contactNumber: z.string().min(10, "Contact number must be at least 10 digits"),
+  contactNumber: z.string()
+    .min(10, "Contact number must be at least 10 digits")
+    .max(15, "Contact number cannot exceed 15 digits")
+    .regex(/^[0-9]+$/, "Contact number must contain only numbers"),
   address: z.string().min(10, "Address must be at least 10 characters"),
   advancePayment: z.number().min(0, "Advance payment cannot be negative").optional(),
 });
@@ -33,17 +38,23 @@ export default function SupplierPage() {
       companyName: "",
       contactNumber: "",
       address: "",
-      advancePayment: 0,
+      advancePayment: undefined,
     },
   });
 
   const onSubmit = async (data: SupplierFormData) => {
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Supplier data:", data);
-      alert("Supplier created successfully!");
+      const payload = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        address: data.address,
+        contactNumber: data.contactNumber,
+        company: data.companyName,
+        advancePayment: data.advancePayment || 0,
+      };
+      await addSupplier(payload);
+      toast.success("Supplier created successfully!");
       reset();
     } catch (error) {
       console.error("Error creating supplier:", error);
@@ -170,10 +181,18 @@ export default function SupplierPage() {
                   control={control}
                   render={({ field }) => (
                     <input
-                      {...field}
                       type="tel"
+                      value={field.value || ""}
+                      onChange={(e) => {
+                        // Only allow numbers
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        field.onChange(value);
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
                       className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                      placeholder="Enter contact number"
+                      placeholder="Enter contact number (digits only)"
+                      maxLength={10}
                     />
                   )}
                 />
@@ -242,17 +261,17 @@ export default function SupplierPage() {
                 control={control}
                 render={({ field }) => (
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                      ₹
-                    </span>
+
                     <input
-                      {...field}
                       type="number"
                       step="0.01"
                       min="0"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      className="mt-1 block w-full rounded-lg border border-gray-300 pl-8 pr-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                      placeholder="0.00"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
+                      placeholder="Enter amount"
                     />
                   </div>
                 )}

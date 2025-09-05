@@ -8,6 +8,7 @@ if (!BASE_URL)
 
 const API_ENDPOINTS = {
   register: "/user/registration",
+  addSupplier: "/supplier/create",
  
 };
 
@@ -34,6 +35,8 @@ const apiClient = axios.create({
 //   ]
 // }
 
+
+
 export const register = async (Paylod) => {
   try {
     const response = await apiClient.post(API_ENDPOINTS.register, Paylod);
@@ -44,9 +47,20 @@ export const register = async (Paylod) => {
   }
 };
 
+export const addSupplier = async (Paylod) => {
+  try {
+    const response = await apiClient.post(API_ENDPOINTS.addSupplier, Paylod);
+    return response.data;
+  } catch (error) {
+    console.error("Error during registration:", error);
+    throw error;
+  }
+};
+
 
 const api = {
   register,
+  addSupplier,
   };
 
 export default api;
