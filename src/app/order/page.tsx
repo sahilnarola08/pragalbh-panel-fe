@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
 import { createPortal } from "react-dom";
+import { addOrder } from "@/apiStore/api";
+import { toast } from "react-toastify";
 
 // Add custom CSS for modal z-index with maximum priority
 const modalStyles = `
@@ -23,7 +25,7 @@ const modalStyles = `
   }
 `;
 
-// Form validation schema
+// Form validation schema - Updated to make images optional
 const orderSchema = z.object({
   clientName: z.string().min(2, "Client name must be at least 2 characters"),
   address: z.string().min(10, "Address must be at least 10 characters"),
@@ -39,12 +41,6 @@ const orderSchema = z.object({
   supplier: z.string().optional(),
   orderPlatform: z.string().min(1, "Please select order platform"),
   otherDetails: z.string().optional(),
-}).refine((data) => {
-  // Custom validation for minimum 5 images
-  return true; // We'll handle this in the component
-}, {
-  message: "Minimum 5 images required",
-  path: ["images"]
 });
 
 type OrderFormData = z.infer<typeof orderSchema>;
@@ -105,8 +101,6 @@ export default function OrderPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-
-
   // Filter clients based on search query
   const filteredClients = mockClients.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -155,17 +149,30 @@ export default function OrderPage() {
   const onSubmit = async (data: OrderFormData) => {
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Order data:", data);
-      console.log("Product images:", uploadedImages);
-      alert("Order created successfully!");
+      // Transform form data to match API payload
+      const payload = {
+        clientName: data.clientName,
+        address: data.address,
+        product: data.product,
+        orderDate: data.orderDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+        dispatchDate: data.dispatchDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+        purchasePrice: data.purchasePrice,
+        sellingPrice: data.sellingPrice,
+        supplier: data.supplier || "", // Handle optional supplier
+        orderPlatform: data.orderPlatform,
+        otherDetails: data.otherDetails || "", // Handle optional other details
+      };
+
+      await addOrder(payload);
+      toast.success("Order created successfully!");
+      
+      // Reset form and images
       reset();
       setUploadedImages([]);
       setIsOtherDetailsOpen(false);
     } catch (error) {
       console.error("Error creating order:", error);
-      alert("Error creating order. Please try again.");
+      toast.error("Error creating order. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -175,13 +182,13 @@ export default function OrderPage() {
     const files = event.target.files;
     if (!files) return;
 
-    // Check if we can add more images (max 5)
+    // Check if we can add more images (max 5) - Images are now optional
     const maxImages = 5;
     const currentCount = uploadedImages.length;
     const canAdd = maxImages - currentCount;
 
     if (canAdd <= 0) {
-      alert('Maximum 5 images already uploaded!');
+      toast.warning('Maximum 5 images already uploaded!');
       return;
     }
 
@@ -212,8 +219,6 @@ export default function OrderPage() {
   const removeImage = (index: number) => {
     setUploadedImages(uploadedImages.filter((_, i) => i !== index));
   };
-
-
 
   return (
     <div className="mx-auto max-w-8xl">
@@ -294,14 +299,6 @@ export default function OrderPage() {
                               {client.name}
                             </div>
                           ))}
-
-                          {/* Add new value option */}
-                          {/* <div className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
-                            <span>Add value</span>
-                            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </div> */}
                         </div>
                       )}
                     </div>
@@ -410,11 +407,11 @@ export default function OrderPage() {
                 )}
               </div>
 
-              {/* Product Images Upload */}
+              {/* Product Images Upload - Now Optional */}
               <div className="lg:col-span-2">
                 <div className=" mb-3">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Product Images
+                    Product Images (Optional)
                   </label>
                   <div className="flex items-center gap-2">
                     <button
@@ -426,7 +423,7 @@ export default function OrderPage() {
                       Choose Files
                     </button>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {uploadedImages.length}/5 images uploaded
+                      {uploadedImages.length}/5 images uploaded (Optional)
                     </span>
                   </div>
                 </div>
@@ -608,8 +605,6 @@ export default function OrderPage() {
                   </p>
                 )}
               </div>
-
-
             </div>
           </div>
 

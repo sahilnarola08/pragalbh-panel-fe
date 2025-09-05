@@ -9,6 +9,7 @@ if (!BASE_URL)
 const API_ENDPOINTS = {
   register: "/user/registration",
   addSupplier: "/supplier/create",
+  addOrder: "/order/create",
  
 };
 
@@ -56,11 +57,34 @@ export const addSupplier = async (Paylod) => {
     throw error;
   }
 };
+// add order
+// paylod = {{
+//   "clientName": "John Doe",
+//   "address": "123 Street",
+//   "product": "Laptop",
+//   "orderDate": "2025-09-05",
+//   "dispatchDate": "2025-09-10",
+//   "purchasePrice": 500,
+//   "sellingPrice": 650,
+//   "supplier": "Supplier Ltd",
+//   "orderPlatform": "Amazon",
+//   "otherDetails": "Urgent order"
+// }
+export const addOrder = async (Paylod) => {
+  try {
+    const response = await apiClient.post(API_ENDPOINTS.addOrder, Paylod);
+    return response.data;
+  } catch (error) {
+    console.error("Error during registration:", error);
+    throw error;
+  }
+};
 
 
 const api = {
   register,
   addSupplier,
+  addOrder,
   };
 
 export default api;
