@@ -127,14 +127,14 @@ export default function ProductPage() {
     <div className="mx-auto max-w-8xl">
       {/* Product Form */}
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 sm:p-6 lg:p-8">
-        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
+        <h2 className="mb-6 text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white text-center px-2 sm:px-0">
           Create New Product
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information Section */}
-          <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-700/50 sm:p-6">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <div className="rounded-xl bg-gray-50 md:p-4 p-2 dark:bg-gray-700/50">
+            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-blue-100 p-1 dark:bg-blue-900/30">
                 <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -197,23 +197,10 @@ export default function ProductPage() {
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Product Images Section - Made Optional */}
-          <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-700/50 sm:p-6">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-              <div className="mr-3 h-6 w-6 rounded-full bg-green-100 p-1 dark:bg-green-900/30">
-                <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              Product Images (Optional)
-            </h3>
-
             <div className="lg:col-span-2">
-              <div className=" mb-3">
+              <div className=" mt-3">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Product Images (Optional)
+                  Product Images 
                 </label>
                 <div className="flex items-center gap-2">
                   <button
@@ -225,7 +212,7 @@ export default function ProductPage() {
                     Choose Files
                   </button>
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {uploadedImages.length}/5 images uploaded (Optional)
+                    {uploadedImages.length}/5 images uploaded
                   </span>
                 </div>
               </div>
@@ -276,9 +263,8 @@ export default function ProductPage() {
               )}
             </div>
           </div>
-
           {/* Form Actions */}
-          <div className="rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 p-4 dark:from-blue-900/20 dark:to-purple-900/20">
+          <div className="rounded-xl p-4 dark:from-blue-900/20 dark:to-purple-900/20">
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
