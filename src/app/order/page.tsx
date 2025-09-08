@@ -178,7 +178,7 @@ export default function OrderPage() {
 
       await addOrder(payload);
       toast.success("Order created successfully!");
-      
+
       // Reset form and images
       reset();
       setUploadedImages([]);
@@ -361,7 +361,7 @@ export default function OrderPage() {
               Product Information
             </h3>
 
-            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 mt-2">
               {/* Product Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -420,87 +420,9 @@ export default function OrderPage() {
                 )}
               </div>
 
-              {/* Product Images Upload - Now Optional */}
-              <div className="lg:col-span-2">
-                <div className=" mb-3">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Product Images (Optional)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById('file-upload')?.click()}
-                      disabled={uploadedImages.length >= 5}
-                      className=" w-50 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-900/50"
-                    >
-                      Choose Files
-                    </button>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {uploadedImages.length}/5 images uploaded 
-                    </span>
-                  </div>
-                </div>
 
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageUpload}
-                  disabled={uploadedImages.length >= 5}
-                  className="hidden"
-                />
-
-                {/* Uploaded Images Preview */}
-                {uploadedImages.length > 0 && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Uploaded Product Images:
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      {uploadedImages.map((image, index) => (
-                        <div key={index} className="relative group">
-                          <Image
-                            width={120}
-                            height={120}
-                            src={image}
-                            alt={`Product ${index + 1}`}
-                            className="h-24 w-24 rounded-lg object-cover border border-gray-300 dark:border-gray-600 shadow-md cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200"
-                            onClick={() => {
-                              setPreviewImage(image);
-                              setShowPreview(true);
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1.5 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg transition-all duration-200"
-                          >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
-          </div>
-
-          {/* Order Details Section */}
-          <div className="rounded-xl bg-gray-50 md:p-6 p-2 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
-              <div className="mr-3 h-6 w-6 rounded-full bg-yellow-100 p-1 dark:bg-yellow-900/30">
-                <svg className="h-4 w-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a4 4 0 118 0m-4 4v4m-6 4h16a2 2 0 002-2v-4a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z" />
-                </svg>
-              </div>
-              Order Details
-            </h3>
-
-            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 mt-2">
               {/* Order Date */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -551,20 +473,7 @@ export default function OrderPage() {
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Pricing Section */}
-          <div className="rounded-xl bg-gray-50 md:p-6 p-2 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
-              <div className="mr-3 h-6 w-6 rounded-full bg-purple-100 p-1 dark:bg-purple-900/30">
-                <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-              Pricing Information
-            </h3>
-
-            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 mt-2">
               {/* Purchase Price */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -657,9 +566,73 @@ export default function OrderPage() {
                 )}
               </div>
             </div>
-          </div>
+            {/* Product Images Upload - Now Optional */}
+            <div className="lg:col-span-2 mt-2">
+              <div className=" mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Product Images
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                    disabled={uploadedImages.length >= 5}
+                    className=" w-50 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-900/50"
+                  >
+                    Choose Files
+                  </button>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {uploadedImages.length}/5 images uploaded
+                  </span>
+                </div>
+              </div>
 
-          {/* Supplier Information Section */}
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                disabled={uploadedImages.length >= 5}
+                className="hidden"
+              />
+
+              {/* Uploaded Images Preview */}
+              {uploadedImages.length > 0 && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Uploaded Product Images:
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    {uploadedImages.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <Image
+                          width={120}
+                          height={120}
+                          src={image}
+                          alt={`Product ${index + 1}`}
+                          className="h-24 w-24 rounded-lg object-cover border border-gray-300 dark:border-gray-600 shadow-md cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200"
+                          onClick={() => {
+                            setPreviewImage(image);
+                            setShowPreview(true);
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1.5 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg transition-all duration-200"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
           <div className="rounded-xl bg-gray-50 md:p-6 p-2 dark:bg-gray-700/50">
             <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-indigo-100 p-1 dark:bg-indigo-900/30">
@@ -671,7 +644,6 @@ export default function OrderPage() {
             </h3>
 
             <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-1">
-              {/* Supplier Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Supplier
@@ -701,8 +673,6 @@ export default function OrderPage() {
               </div>
             </div>
           </div>
-
-          {/* Other Details Section - Accordion */}
           <div className="rounded-xl bg-gray-50 dark:bg-gray-700/50 overflow-hidden">
             <button
               type="button"
@@ -758,7 +728,7 @@ export default function OrderPage() {
           </div>
 
           {/* Form Actions */}
-          <div className="rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 p-4 dark:from-blue-900/20 dark:to-purple-900/20">
+          <div className="rounded-xl ">
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
