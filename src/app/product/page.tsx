@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
 import ImagePreviewModal from "@/components/atoms/ImagePreviewModal";
+import { addProduct } from "@/apiStore/api";
+import { toast } from "react-toastify";
 
 // Form validation schema
 const productSchema = z.object({
@@ -34,8 +36,6 @@ const categories = [
   "Other",
 ];
 
-
-
 export default function ProductPage() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,16 +61,21 @@ export default function ProductPage() {
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Product data:", data);
-      console.log("Product images:", uploadedImages);
-      alert("Product created successfully!");
+      // Transform form data to match API payload
+      const payload = {
+        category: data.category,
+        productName: data.productName,
+      };
+
+      await addProduct(payload);
+      toast.success("Product created successfully!");
+      
+      // Reset form and images
       reset();
       setUploadedImages([]);
     } catch (error) {
       console.error("Error creating product:", error);
-      alert("Error creating product. Please try again.");
+      toast.error("Error creating product. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -80,13 +85,13 @@ export default function ProductPage() {
     const files = event.target.files;
     if (!files) return;
 
-    // Check if we can add more images (max 5)
+    // Check if we can add more images (max 5) - Images are optional
     const maxImages = 5;
     const currentCount = uploadedImages.length;
     const canAdd = maxImages - currentCount;
 
     if (canAdd <= 0) {
-      alert('Maximum 5 images already uploaded!');
+      toast.warning('Maximum 5 images already uploaded!');
       return;
     }
 
@@ -191,12 +196,10 @@ export default function ProductPage() {
                   </p>
                 )}
               </div>
-
-
             </div>
           </div>
 
-          {/* Product Images Section */}
+          {/* Product Images Section - Made Optional */}
           <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-700/50 sm:p-6">
             <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
               <div className="mr-3 h-6 w-6 rounded-full bg-green-100 p-1 dark:bg-green-900/30">
@@ -204,13 +207,13 @@ export default function ProductPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              Product Images
+              Product Images (Optional)
             </h3>
 
             <div className="lg:col-span-2">
               <div className=" mb-3">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Product Images
+                  Product Images (Optional)
                 </label>
                 <div className="flex items-center gap-2">
                   <button
@@ -222,7 +225,7 @@ export default function ProductPage() {
                     Choose Files
                   </button>
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {uploadedImages.length}/5 images uploaded
+                    {uploadedImages.length}/5 images uploaded (Optional)
                   </span>
                 </div>
               </div>
@@ -273,6 +276,7 @@ export default function ProductPage() {
               )}
             </div>
           </div>
+
           {/* Form Actions */}
           <div className="rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 p-4 dark:from-blue-900/20 dark:to-purple-900/20">
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">

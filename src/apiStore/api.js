@@ -10,6 +10,7 @@ const API_ENDPOINTS = {
   register: "/user/registration",
   addSupplier: "/supplier/create",
   addOrder: "/order/create",
+  addProduct: "/product/create",
  
 };
 
@@ -80,11 +81,26 @@ export const addOrder = async (Paylod) => {
   }
 };
 
+// add product
+// paylod = {
+//   "category": "Electronics",
+//   "productName": "Laptop"
+// }
+export const addProduct = async (Paylod) => {
+  try {
+    const response = await apiClient.post(API_ENDPOINTS.addProduct, Paylod);
+    return response.data;
+  } catch (error) {
+    console.error("Error during registration:", error);
+    throw error;
+  }
+};
 
 const api = {
   register,
   addSupplier,
   addOrder,
+  addProduct,
   };
 
 export default api;
