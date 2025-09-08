@@ -11,6 +11,7 @@ import { ArrowLeftIcon } from "./icons";
 import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import * as Icons from "./icons";
 
 // Skeleton components for sidebar loading
 function SidebarMenuSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
@@ -167,37 +168,92 @@ export function Sidebar() {
                     <ul className="space-y-2">
                       {section.items.map((item) => (
                         <li key={item.title}>
-                          {/* Handle regular menu items */}
-                          {isCollapsed ? (
-                            <Link
-                              href={item.url}
-                              onClick={() => isMobile && toggleSidebar()}
-                              className={cn(
-                                "flex items-center justify-center rounded-lg p-3 transition-all duration-200",
-                                pathname === item.url
-                                  ? "bg-[rgba(87,80,241,0.07)] text-primary dark:bg-[#FFFFFF1A] dark:text-white"
-                                  : "text-dark-4 hover:bg-gray-100 hover:text-dark dark:text-dark-6 hover:dark:bg-[#FFFFFF1A] hover:dark:text-white"
+                          {/* Handle items with sub-items (collapsible) */}
+                          {item.items && item.items.length > 0 ? (
+                            <>
+                              {/* Parent item button */}
+                              <button
+                                onClick={() => toggleExpanded(item.title)}
+                                className={cn(
+                                  "flex w-full items-center gap-3 rounded-lg px-3.5 py-3 font-medium text-dark-4 transition-all duration-200 hover:bg-gray-100 hover:text-dark dark:text-dark-6 hover:dark:bg-[#FFFFFF1A] hover:dark:text-white",
+                                  !isCollapsed ? "justify-between" : "justify-center"
+                                )}
+                                aria-expanded={expandedItems.includes(item.title)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <item.icon
+                                    className="size-6 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                  {!isCollapsed && <span>{item.title}</span>}
+                                </div>
+                                {!isCollapsed && (
+                                  <Icons.ChevronUp
+                                    className={cn(
+                                      "size-4 transition-transform duration-200",
+                                      expandedItems.includes(item.title) ? "rotate-180" : ""
+                                    )}
+                                  />
+                                )}
+                              </button>
+
+                              {/* Sub-items */}
+                              {!isCollapsed && expandedItems.includes(item.title) && (
+                                <ul className="ml-6 mt-2 space-y-1">
+                                  {item.items.map((subItem) => (
+                                    <li key={subItem.title}>
+                                      <MenuItem
+                                        className="flex items-center gap-3 py-2"
+                                        as="link"
+                                        href={subItem.url || ""}
+                                        isActive={pathname === subItem.url}
+                                      >
+                                        <subItem.icon
+                                          className="size-5 shrink-0"
+                                          aria-hidden="true"
+                                        />
+                                        <span>{subItem.title}</span>
+                                      </MenuItem>
+                                    </li>
+                                  ))}
+                                </ul>
                               )}
-                              title={item.title}
-                            >
-                              <item.icon
-                                className="size-6 shrink-0"
-                                aria-hidden="true"
-                              />
-                            </Link>
+                            </>
                           ) : (
-                            <MenuItem
-                              className="flex items-center gap-3 py-3"
-                              as="link"
-                              href={item.url}
-                              isActive={pathname === item.url}
-                            >
-                              <item.icon
-                                className="size-6 shrink-0"
-                                aria-hidden="true"
-                              />
-                              <span>{item.title}</span>
-                            </MenuItem>
+                            /* Handle regular menu items (no sub-items) */
+                            <>
+                              {isCollapsed ? (
+                                <Link
+                                  href={item.url || ""}
+                                  onClick={() => isMobile && toggleSidebar()}
+                                  className={cn(
+                                    "flex items-center justify-center rounded-lg p-3 transition-all duration-200",
+                                    pathname === item.url
+                                      ? "bg-[rgba(87,80,241,0.07)] text-primary dark:bg-[#FFFFFF1A] dark:text-white"
+                                      : "text-dark-4 hover:bg-gray-100 hover:text-dark dark:text-dark-6 hover:dark:bg-[#FFFFFF1A] hover:dark:text-white"
+                                  )}
+                                  title={item.title}
+                                >
+                                  <item.icon
+                                    className="size-6 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                </Link>
+                              ) : (
+                                <MenuItem
+                                  className="flex items-center gap-3 py-3"
+                                  as="link"
+                                  href={item.url || ""}
+                                  isActive={pathname === item.url}
+                                >
+                                  <item.icon
+                                    className="size-6 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                  <span>{item.title}</span>
+                                </MenuItem>
+                              )}
+                            </>
                           )}
                         </li>
                       ))}

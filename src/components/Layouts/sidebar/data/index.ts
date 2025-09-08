@@ -5,46 +5,50 @@ export const NAV_DATA = [
     label: "MAIN MENU",
     items: [
       {
-        title: "User",
+        title: "Customer",
         icon: Icons.User,
-        url: "/user",
-        items: [],
+        items: [
+          {
+            title: "Add Customer",
+            url: "/customer/addCustomer",
+            icon: Icons.User,
+          },
+          {
+            title: "Customer List",
+            url: "/customer",
+            icon: Icons.User,
+          },
+        ],
       },
       {
         title: "Order",
         icon: Icons.Table,
         url: "/order",
-        items: [],
       },
       {
         title: "Order Management",
         icon: Icons.OrderManagement,
         url: "/order-management",
-        items: [],
       },
       {
         title: "Income",
         icon: Icons.PieChart,
         url: "/income",
-        items: [],
       },
       {
         title: "Product",
         icon: Icons.FourCircle,
         url: "/product",
-        items: [],
       },
       {
         title: "Supplier",
         icon: Icons.HomeIcon,
         url: "/supplier",
-        items: [],
       },
       {
-        title: "sign up",
+        title: "Sign In",
         icon: Icons.Authentication,
         url: "/auth/sign-in",
-        items: [],
       },
     ],
   },
