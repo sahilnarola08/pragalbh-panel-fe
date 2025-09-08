@@ -359,7 +359,7 @@ export default function OrderManagementPage() {
   // Show loading state until client-side is ready to prevent hydration mismatch
   if (!isClient) {
     return (
-      <div className="h-100 p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 w-full   ">
+      <div className="h-100 p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 w-full">
         <div className="max-w-8xl mx-auto ">
           <div className="flex gap-2 overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {Object.entries(initialData).map(([colId, col]) => (
@@ -404,10 +404,10 @@ export default function OrderManagementPage() {
     );
   }
   return (
-    <div className="h-[calc(90vh-100px)] p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="h-[calc(90vh-100px)] md:p-3 p-2 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 ">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
+        <h1 className="md:text-2xl text-xl font-semibold md:font-bold text-gray-800 text-center md:text-left">Order Management</h1>
       </div>
       {/* Kanban Board */}
       <div className="max-w-8xl mx-auto h-[calc(90vh-100px)]">
@@ -421,7 +421,7 @@ export default function OrderManagementPage() {
             {Object.entries(columns).map(([colId, col]) => (
               <div
                 key={colId}
-                className={`bg-white w-80 sm:w-80 md:w-80 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0`}
+                className={`bg-white w-72 sm:w-74  lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0`}
               >
                 {/* Column Header */}
                 <div className="p-4 border-b border-gray-200">
