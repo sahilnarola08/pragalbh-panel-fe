@@ -36,8 +36,20 @@ const orderSchema = z.object({
   dispatchDate: z.date({
     message: "Dispatch date is required",
   }),
-  purchasePrice: z.number().min(0.01, "Purchase price must be greater than 0"),
-  sellingPrice: z.number().min(0.01, "Selling price must be greater than 0"),
+  purchasePrice: z.union([
+    z.number().min(0.01, "Purchase price must be greater than 0"),
+    z.string().refine((val) => val === "", "Please enter a valid number")
+  ]).refine((val) => {
+    if (typeof val === "string") return val === "";
+    return val > 0;
+  }, "Purchase price must be greater than 0"),
+  sellingPrice: z.union([
+    z.number().min(0.01, "Selling price must be greater than 0"),
+    z.string().refine((val) => val === "", "Please enter a valid number")
+  ]).refine((val) => {
+    if (typeof val === "string") return val === "";
+    return val > 0;
+  }, "Selling price must be greater than 0"),
   supplier: z.string().optional(),
   orderPlatform: z.string().min(1, "Please select order platform"),
   otherDetails: z.string().optional(),
@@ -45,6 +57,7 @@ const orderSchema = z.object({
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
+console.log(orderSchema);
 // Mock data for dropdowns
 const products = [
   "Laptop",
@@ -221,16 +234,16 @@ export default function OrderPage() {
   };
 
   return (
-    <div className="mx-auto max-w-8xl">
+    <div className="mx-auto max-w-8xl ">
       {/* Order Form */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800 sm:p-8">
-        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 sm:p-6 lg:p-8">
+        <h2 className="mb-6 text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white text-center px-2 sm:px-0">
           Create New Order
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Client Information Section */}
-          <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <div className="rounded-xl bg-gray-50 md:p-6 p-2  dark:bg-gray-700/50">
+            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-blue-100 p-1 dark:bg-blue-900/30">
                 <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -338,8 +351,8 @@ export default function OrderPage() {
           </div>
 
           {/* Product Information Section */}
-          <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <div className="rounded-xl bg-gray-50 md:p-6 p-2 dark:bg-gray-700/50">
+            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-green-100 p-1 dark:bg-green-900/30">
                 <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -423,7 +436,7 @@ export default function OrderPage() {
                       Choose Files
                     </button>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {uploadedImages.length}/5 images uploaded (Optional)
+                      {uploadedImages.length}/5 images uploaded 
                     </span>
                   </div>
                 </div>
@@ -477,8 +490,8 @@ export default function OrderPage() {
           </div>
 
           {/* Order Details Section */}
-          <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <div className="rounded-xl bg-gray-50 md:p-6 p-2 dark:bg-gray-700/50">
+            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-yellow-100 p-1 dark:bg-yellow-900/30">
                 <svg className="h-4 w-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a4 4 0 118 0m-4 4v4m-6 4h16a2 2 0 002-2v-4a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z" />
@@ -541,8 +554,8 @@ export default function OrderPage() {
           </div>
 
           {/* Pricing Section */}
-          <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <div className="rounded-xl bg-gray-50 md:p-6 p-2 dark:bg-gray-700/50">
+            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-purple-100 p-1 dark:bg-purple-900/30">
                 <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -566,9 +579,28 @@ export default function OrderPage() {
                       type="number"
                       step="0.01"
                       min="0"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      value={field.value === 0 ? '' : field.value}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '') {
+                          field.onChange('');
+                        } else {
+                          const numValue = parseFloat(value);
+                          if (isNaN(numValue)) {
+                            field.onChange(value); // Keep invalid input to trigger validation
+                          } else {
+                            field.onChange(numValue);
+                          }
+                        }
+                      }}
+                      onFocus={(e) => {
+                        if (field.value === 0) {
+                          e.target.value = '';
+                          field.onChange('');
+                        }
+                      }}
                       className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                      placeholder="0.00"
+                      placeholder="Enter purchase price"
                     />
                   )}
                 />
@@ -593,9 +625,28 @@ export default function OrderPage() {
                       type="number"
                       step="0.01"
                       min="0"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      value={field.value === 0 ? '' : field.value}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '') {
+                          field.onChange('');
+                        } else {
+                          const numValue = parseFloat(value);
+                          if (isNaN(numValue)) {
+                            field.onChange(value); // Keep invalid input to trigger validation
+                          } else {
+                            field.onChange(numValue);
+                          }
+                        }
+                      }}
+                      onFocus={(e) => {
+                        if (field.value === 0) {
+                          e.target.value = '';
+                          field.onChange('');
+                        }
+                      }}
                       className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                      placeholder="0.00"
+                      placeholder="Enter selling price"
                     />
                   )}
                 />
@@ -609,8 +660,8 @@ export default function OrderPage() {
           </div>
 
           {/* Supplier Information Section */}
-          <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <div className="rounded-xl bg-gray-50 md:p-6 p-2 dark:bg-gray-700/50">
+            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-indigo-100 p-1 dark:bg-indigo-900/30">
                 <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -659,7 +710,7 @@ export default function OrderPage() {
               className="w-full p-6 text-left"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
                   <div className="mr-3 h-6 w-6 rounded-full bg-orange-100 p-1 dark:bg-orange-900/30">
                     <svg className="h-4 w-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
