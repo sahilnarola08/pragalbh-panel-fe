@@ -90,11 +90,18 @@ const CustomerList = () => {
   };
 
   return (
-    <Box >
-      <Card sx={{ mb: 3, boxShadow: "none", border: "1px solid #e0e0e0" }}>
-        <CardContent>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, gap: 1 }}>
-            <Typography variant="h5" component="h5" sx={{ fontWeight: 600, color: "#1a1a1a" }}>
+    <Box sx={{ width: "100%", overflow: "hidden" }}>
+      <Card sx={{ mb: 3, boxShadow: "none", border: "1px solid #e0e0e0", width: "100%" }}>
+        <CardContent sx={{ padding: { xs: 2, sm: 3 } }}>
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: { xs: "flex-start", sm: "center" }, 
+            mb: 2, 
+            gap: 1,
+            flexDirection: { xs: "column", sm: "row" }
+          }}>
+            <Typography variant="h5" component="h5" sx={{ fontWeight: 600, color: "#1a1a1a", mb: { xs: 2, sm: 0 } }}>
               Customer List
             </Typography>
             <Button
@@ -105,75 +112,97 @@ const CustomerList = () => {
                 "&:hover": { backgroundColor: "#2563eb" },
                 borderRadius: "8px",
                 textTransform: "none",
-                fontWeight: 500
+                fontWeight: 500,
+                width: { xs: "100%", sm: "auto" }
               }}
             >
               Add Customer
             </Button>
           </Box>
 
-          <Stack direction="row" spacing={2} sx={{ mb: 3, justifyContent: "flex-end", alignItems: "center" }}>
-            <TextField
-              placeholder="Search customers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: <SearchIcon sx={{ color: "#9ca3af", mr: 1 }} />
-              }}
-              sx={{
-                width: "250px",
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "6px",
-                  height: "36px",
-                  "&:hover fieldset": {
-                    borderColor: "#3b82f6"
+          {/* Search Section - Mobile Optimized */}
+          <Box sx={{ 
+            display: "flex", 
+            flexDirection: { xs: "column", sm: "row" }, 
+            gap: 2, 
+            mb: 3,
+            alignItems: { xs: "stretch", sm: "center" },
+            justifyContent: { xs: "stretch", sm: "flex-end" }
+          }}>
+            <Box sx={{ 
+              display: "flex", 
+              gap: 1, 
+              alignItems: "center",
+              width: { xs: "100%", sm: "auto" }
+            }}>
+              <TextField
+                placeholder="Search customers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: <SearchIcon sx={{ color: "#9ca3af", mr: 0.5 }} />
+                }}
+                sx={{
+                  flex: 1,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "6px",
+                    height: "36px",
+                    "&:hover fieldset": {
+                      borderColor: "#3b82f6"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#3b82f6",
+                      borderWidth: "2px"
+                    }
                   },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#3b82f6",
-                    borderWidth: "2px"
+                  "& .MuiInputBase-input": {
+                    // padding: "8px 12px",
+                    padding: "8px 50px 8px 2px ",
+                    // paddingLeft: "2px",
+                    // paddingRight: "50px",
+                    fontSize: "13px"
                   }
-                },
-                "& .MuiInputBase-input": {
-                  padding: "8px 12px",
-                  fontSize: "13px"
-                }
-              }}
+                }}
+              />
+              <Button
+                variant="contained"
+                onClick={handleSearch}
+                sx={{
+                  backgroundColor: "#10b981",
+                  "&:hover": { 
+                    backgroundColor: "#059669",
+                    transform: "translateY(-1px)",
+                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)"
+                  },
+                  borderRadius: "6px",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  padding: "8px 16px",
+                  minWidth: "80px",
+                  height: "36px",
+                  fontSize: "13px",
+                  boxShadow: "0 2px 8px rgba(16, 185, 129, 0.2)",
+                  transition: "all 0.2s ease-in-out",
+                  display: { xs: "none", sm: "block" }
+                }}
+              >
+                Search
+              </Button>
+            </Box>
+          </Box>
+
+          <Box sx={{ width: "100%", overflow: "hidden" }}>
+            <ReusableTable
+              columns={columns}
+              data={customers}
+              loading={loading}
+              emptyMessage="No customers found"
+              stickyHeader={false}
+              maxHeight="auto"
             />
-            <Button
-              variant="contained"
-              onClick={handleSearch}
-              sx={{
-                backgroundColor: "#10b981",
-                "&:hover": { 
-                  backgroundColor: "#059669",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)"
-                },
-                borderRadius: "6px",
-                textTransform: "none",
-                fontWeight: 600,
-                padding: "8px 20px",
-                minWidth: "80px",
-                height: "36px",
-                fontSize: "13px",
-                boxShadow: "0 2px 8px rgba(16, 185, 129, 0.2)",
-                transition: "all 0.2s ease-in-out"
-              }}
-            >
-              Search
-            </Button>
-          </Stack>
+          </Box>
 
-          <ReusableTable
-            columns={columns}
-            data={customers}
-            loading={loading}
-            emptyMessage="No customers found"
-            stickyHeader={true}
-            maxHeight={600}
-          />
-
-          {/* TablePagination */}
+          {/* TablePagination - Desktop Right Aligned */}
           <TablePagination
             component="div"
             count={totalCount}
@@ -187,34 +216,39 @@ const CustomerList = () => {
               borderTop: "none",
               borderRadius: "0 0 8px 8px",
               backgroundColor: "#ffffff",
+              width: "100%",
+              overflow: "hidden",
               "& .MuiTablePagination-toolbar": {
-                paddingLeft: "16px",
-                paddingRight: "16px",
+                paddingLeft: { xs: "8px", sm: "16px" },
+                paddingRight: { xs: "8px", sm: "16px" },
                 minHeight: "52px",
                 alignItems: "center",
-                justifyContent: "space-between",
+                justifyContent: { xs: "center", sm: "flex-end" },
                 flexWrap: "nowrap",
+                gap: { xs: "8px", sm: "16px" },
               },
               "& .MuiTablePagination-selectLabel": {
                 marginBottom: 0,
                 marginRight: "8px",
-                fontSize: "0.875rem",
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 color: "#374151",
                 fontWeight: 500,
+                whiteSpace: "nowrap",
               },
               "& .MuiTablePagination-select": {
                 marginLeft: "8px",
                 marginRight: "24px",
-                fontSize: "0.875rem",
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 "& .MuiSelect-select": {
                   padding: "4px 8px",
                 }
               },
               "& .MuiTablePagination-displayedRows": {
                 marginBottom: 0,
-                fontSize: "0.875rem",
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 color: "#374151",
                 fontWeight: 500,
+                whiteSpace: "nowrap",
               },
               "& .MuiTablePagination-actions": {
                 marginLeft: "16px",
@@ -232,7 +266,7 @@ const CustomerList = () => {
                 }
               },
               "& .MuiTablePagination-spacer": {
-                flex: "1 1 100%",
+                display: "none",
               }
             }}
           />
