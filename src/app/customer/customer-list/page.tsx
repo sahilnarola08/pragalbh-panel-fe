@@ -25,7 +25,7 @@ const CustomerList = () => {
   const [totalCount, setTotalCount] = useState(0);
 
   const columns = [
-    { id: "fullName", label: "Customer Name", minWidth: 150 },
+    { id: "fullName", label: "Customer", minWidth: 150 },
     { id: "email", label: "Email", minWidth: 200 },
     { id: "contactNumber", label: "Phone", minWidth: 120 },
     { id: "address", label: "Address", minWidth: 200, align: "left" as const },
