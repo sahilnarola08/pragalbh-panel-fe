@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -94,37 +94,45 @@ export default function OrderPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [clients, setClients] = useState<Customer[]>([]);
   const [isLoadingClients, setIsLoadingClients] = useState(true);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
-  // Fetch clients from API
+  // Debounce search query
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        setIsLoadingClients(true);
-        const response = await getCustomerList();
-        if (response && response.data && response.data.users) {
-          setClients(response.data.users);
-        }
-      } catch (error) {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch clients from API with search parameters
+  const fetchClients = useCallback(async (searchTerm: string = "") => {
+    try {
+      setIsLoadingClients(true);
+      const params = searchTerm ? { search: searchTerm } : {};
+      const response = await getCustomerList(params);
+      
+      if (response && response.data && response.data.users) {
+        setClients(response.data.users);
+      } else {
         setClients([]);
-      } finally {
-        setIsLoadingClients(false);
       }
-    };
-    
-    fetchClients();
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      setClients([]);
+    } finally {
+      setIsLoadingClients(false);
+    }
   }, []);
 
-  // Filter clients based on search query
+  // Initial load and search with debounced query
+  useEffect(() => {
+    fetchClients(debouncedSearchQuery);
+  }, [debouncedSearchQuery, fetchClients]);
+
+  // Filter clients based on search query (client-side filtering as backup)
   const filteredClients = clients.filter(client =>
     client.fullName && client.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Check if client name exists in the API data
-  const isClientExists = (clientName: string) => {
-    return clients.some(client => 
-      client.fullName && client.fullName.toLowerCase() === clientName.toLowerCase()
-    );
-  };
 
   // Click outside handler to close suggestions
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -170,13 +178,7 @@ export default function OrderPage() {
     setIsSubmitting(true);
     
     try {
-      // Check if client name exists in the API data
-      if (!isClientExists(data.clientName)) {
-        router.push(`/customer/add-customer?name=${encodeURIComponent(data.clientName)}`);
-        return;
-      }
-
-      // Client exists, proceed with creating order
+      // Directly create order without client validation
       const payload = {
         clientName: data.clientName,
         address: data.address,
@@ -329,11 +331,10 @@ export default function OrderPage() {
                             <>
                             <div 
                               onClick={() => {
-                                field.onChange(field.value || searchQuery);
-                                setShowSuggestions(false);
-                                setSearchQuery('');
+                                const clientName = field.value || searchQuery;
+                                router.push(`/customer/add-customer?name=${encodeURIComponent(clientName)}&isOrder=true`);
                               }}
-                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left">
+                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                               Add &apos;{field.value || searchQuery}&apos; 
                             </div>
                             </>

@@ -4,10 +4,10 @@ import { useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useSearchParams, useRouter } from "next/navigation";
 import { register } from "@/apiStore/api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useSearchParams } from "next/navigation";
 
 // Form validation schema
 const userSchema = z.object({
@@ -60,7 +60,9 @@ export default function UserPage() {
   const [newPlatform, setNewPlatform] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const searchParams = useSearchParams();
-  const name = searchParams.get("name");  
+  const router = useRouter();
+  const name = searchParams.get("name");
+  const isOrder = searchParams.get("isOrder") === "true";
 
   // Use useRef to prevent multiple API calls
   const isSubmittingRef = useRef(false);
@@ -142,9 +144,6 @@ export default function UserPage() {
         }))
       };
       const response = await register(payload);
-      
-      console.log("User registration successful:", response);
-      
       // Show success toast
       toast.success("User Created Successfully!", {
         position: "top-right",
@@ -160,6 +159,14 @@ export default function UserPage() {
       setSelectedPlatform("");
       setPlatformEntries([]);
       setIsSocialAccordionOpen(false);
+      if (response.status === 200) {
+        // Redirect based on isOrder parameter
+        if (isOrder) {
+          router.push("/order");
+        } else {
+          router.push("/customer/customer-list");
+        }
+      }
 
     } catch (error: any) {
       console.error("Error creating user:", error);
@@ -405,7 +412,7 @@ export default function UserPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 4v2h6V4M9 4a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V6a2 2 0 00-2-2" />
                     </svg>
                   </div>
-                  Social Media Information 
+                  Social Media Information
                 </h3>
                 <svg
                   className={`h-5 w-5 text-gray-500 transition-transform duration-200 ${isSocialAccordionOpen ? 'rotate-180' : ''
