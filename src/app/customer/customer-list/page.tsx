@@ -156,10 +156,7 @@ const CustomerList = () => {
                     }
                   },
                   "& .MuiInputBase-input": {
-                    // padding: "8px 12px",
                     padding: "8px 50px 8px 2px ",
-                    // paddingLeft: "2px",
-                    // paddingRight: "50px",
                     fontSize: "13px"
                   }
                 }}
@@ -219,25 +216,21 @@ const CustomerList = () => {
               width: "100%",
               overflow: "hidden",
               "& .MuiTablePagination-toolbar": {
-                paddingLeft: { xs: "8px", sm: "16px" },
-                paddingRight: { xs: "8px", sm: "16px" },
                 minHeight: "52px",
                 alignItems: "center",
                 justifyContent: { xs: "center", sm: "flex-end" },
                 flexWrap: "nowrap",
-                gap: { xs: "8px", sm: "16px" },
+                gap: "2px",
               },
               "& .MuiTablePagination-selectLabel": {
-                marginBottom: 0,
-                marginRight: "8px",
+                margin:0,
                 fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 color: "#374151",
                 fontWeight: 500,
                 whiteSpace: "nowrap",
               },
               "& .MuiTablePagination-select": {
-                marginLeft: "8px",
-                marginRight: "24px",
+                marginRight: "15px",
                 fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 "& .MuiSelect-select": {
                   padding: "4px 8px",
