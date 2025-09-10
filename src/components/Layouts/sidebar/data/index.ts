@@ -10,7 +10,7 @@ export const NAV_DATA = [
         items: [
           {
             title: "Add Customer",
-            url: "/customer/addCustomer",
+            url: "/customer/add-customer",
             icon: Icons.User,
           },
           {

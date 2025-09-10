@@ -5,7 +5,7 @@ import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import ReusableTable from "../../../components/atoms/ReusableTable";
 import { useState, useEffect } from "react";
 import { getCustomerList } from "@/apiStore/api";
-
+import { useRouter } from "next/navigation";
 interface Customer {
   id: string;
   fullName: string;
@@ -23,6 +23,8 @@ const CustomerList = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+
+  const router = useRouter();
 
   const columns = [
     { id: "fullName", label: "Customer", minWidth: 150 },
@@ -105,6 +107,9 @@ const CustomerList = () => {
               Customer List
             </Typography>
             <Button
+              onClick={() => {
+                router.push("/customer/add-customer");
+              }}
               variant="contained"
               startIcon={<AddIcon />}
               sx={{
