@@ -7,6 +7,7 @@ import * as z from "zod";
 import { register } from "@/apiStore/api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useSearchParams } from "next/navigation";
 
 // Form validation schema
 const userSchema = z.object({
@@ -58,6 +59,8 @@ export default function UserPage() {
   const [platformEntries, setPlatformEntries] = useState<PlatformEntry[]>([]);
   const [newPlatform, setNewPlatform] = useState("");
   const [newUsername, setNewUsername] = useState("");
+  const searchParams = useSearchParams();
+  const name = searchParams.get("name");  
 
   // Use useRef to prevent multiple API calls
   const isSubmittingRef = useRef(false);
@@ -71,7 +74,7 @@ export default function UserPage() {
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      firstName: "",
+      firstName: name || "",
       lastName: "",
       address: "",
       contactNumber: "",

@@ -5,27 +5,21 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
-import { createPortal } from "react-dom";
-import { addOrder } from "@/apiStore/api";
+import { useRouter } from "next/navigation";
+import { addOrder, getCustomerList } from "@/apiStore/api";
 import { toast } from "react-toastify";
+import ImagePreviewModal from "@/components/atoms/ImagePreviewModal";
 
-// Add custom CSS for modal z-index with maximum priority
-const modalStyles = `
-  .modal-overlay {
-    z-index: 2147483647 !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-  }
-  .modal-content {
-    z-index: 2147483647 !important;
-    position: relative !important;
-  }
-`;
+// Customer interface based on API response
+interface Customer {
+  id: string;
+  fullName: string;
+  email: string;
+  contactNumber: string;
+  address: string;
+}
 
-// Form validation schema - Updated to make images optional
+// Form validation schema
 const orderSchema = z.object({
   clientName: z.string().min(2, "Client name must be at least 2 characters"),
   address: z.string().min(10, "Address must be at least 10 characters"),
@@ -57,7 +51,6 @@ const orderSchema = z.object({
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
-console.log(orderSchema);
 // Mock data for dropdowns
 const products = [
   "Laptop",
@@ -68,18 +61,6 @@ const products = [
   "Mouse",
   "Headphones",
   "Speaker",
-];
-
-// Mock client data for search
-const mockClients = [
-  { id: 1, name: "John Smith" },
-  { id: 2, name: "Sarah Johnson" },
-  { id: 3, name: "Mike Wilson" },
-  { id: 4, name: "Emily Davis" },
-  { id: 5, name: "David Brown" },
-  { id: 6, name: "Lisa Anderson" },
-  { id: 7, name: "James Taylor" },
-  { id: 8, name: "Jennifer White" },
 ];
 
 const suppliers = [
@@ -102,10 +83,8 @@ const orderPlatforms = [
   "Other",
 ];
 
-// Import the reusable modal component
-import ImagePreviewModal from "@/components/atoms/ImagePreviewModal";
-
 export default function OrderPage() {
+  const router = useRouter();
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOtherDetailsOpen, setIsOtherDetailsOpen] = useState(false);
@@ -113,11 +92,39 @@ export default function OrderPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [clients, setClients] = useState<Customer[]>([]);
+  const [isLoadingClients, setIsLoadingClients] = useState(true);
+
+  // Fetch clients from API
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        setIsLoadingClients(true);
+        const response = await getCustomerList();
+        if (response && response.data && response.data.users) {
+          setClients(response.data.users);
+        }
+      } catch (error) {
+        setClients([]);
+      } finally {
+        setIsLoadingClients(false);
+      }
+    };
+    
+    fetchClients();
+  }, []);
 
   // Filter clients based on search query
-  const filteredClients = mockClients.filter(client =>
-    client.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredClients = clients.filter(client =>
+    client.fullName && client.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Check if client name exists in the API data
+  const isClientExists = (clientName: string) => {
+    return clients.some(client => 
+      client.fullName && client.fullName.toLowerCase() === clientName.toLowerCase()
+    );
+  };
 
   // Click outside handler to close suggestions
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -161,8 +168,15 @@ export default function OrderPage() {
 
   const onSubmit = async (data: OrderFormData) => {
     setIsSubmitting(true);
+    
     try {
-      // Transform form data to match API payload
+      // Check if client name exists in the API data
+      if (!isClientExists(data.clientName)) {
+        router.push(`/customer/add-customer?name=${encodeURIComponent(data.clientName)}`);
+        return;
+      }
+
+      // Client exists, proceed with creating order
       const payload = {
         clientName: data.clientName,
         address: data.address,
@@ -283,35 +297,47 @@ export default function OrderPage() {
                         />
                       </div>
 
-                      {/* Suggestions Dropdown */}
-                      {showSuggestions && (field.value || searchQuery) && (
-                        <div ref={suggestionsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
-                          {/* Add new client option */}
-                          <div
-                            className="px-3 py-2 bg-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-600"
-                            onClick={() => {
-                              field.onChange(field.value || searchQuery);
-                              setShowSuggestions(false);
-                              setSearchQuery('');
-                            }}
-                          >
-                            Add &apos;{field.value || searchQuery}&apos;
-                          </div>
+                      {/* Loading indicator */}
+                      {isLoadingClients && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg className="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </div>
+                      )}
 
+                      {/* Suggestions Dropdown */}
+                      {showSuggestions && (field.value || searchQuery) && !isLoadingClients && (
+                        <div ref={suggestionsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
                           {/* Existing clients */}
-                          {filteredClients.map((client) => (
-                            <div
-                              key={client.id}
-                              className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300"
+                          {filteredClients.length > 0 ? (
+                            filteredClients.map((client) => (
+                              <div
+                                key={client.id}
+                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300"
+                                onClick={() => {
+                                  field.onChange(client.fullName);
+                                  setShowSuggestions(false);
+                                  setSearchQuery('');
+                                }}
+                              >
+                                {client.fullName}
+                              </div>
+                            ))
+                          ) : (
+                            <>
+                            <div 
                               onClick={() => {
-                                field.onChange(client.name);
+                                field.onChange(field.value || searchQuery);
                                 setShowSuggestions(false);
                                 setSearchQuery('');
                               }}
-                            >
-                              {client.name}
+                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left">
+                              Add &apos;{field.value || searchQuery}&apos; 
                             </div>
-                          ))}
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -419,8 +445,6 @@ export default function OrderPage() {
                   </p>
                 )}
               </div>
-
-
             </div>
             <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 mt-2">
               {/* Order Date */}
