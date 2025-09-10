@@ -150,15 +150,56 @@ const CustomerList = () => {
             onRowsPerPageChange={handleChangeRowsPerPage}
             rowsPerPageOptions={[5, 10, 25, 50, 100]}
             sx={{
+              border: "1px solid #e0e0e0",
+              borderTop: "none",
+              borderRadius: "0 0 8px 8px",
+              backgroundColor: "#ffffff",
               "& .MuiTablePagination-toolbar": {
-                paddingLeft: 0,
-                paddingRight: 0,
+                paddingLeft: "16px",
+                paddingRight: "16px",
+                minHeight: "52px",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "nowrap",
               },
               "& .MuiTablePagination-selectLabel": {
                 marginBottom: 0,
+                marginRight: "8px",
+                fontSize: "0.875rem",
+                color: "#374151",
+                fontWeight: 500,
+              },
+              "& .MuiTablePagination-select": {
+                marginLeft: "8px",
+                marginRight: "24px",
+                fontSize: "0.875rem",
+                "& .MuiSelect-select": {
+                  padding: "4px 8px",
+                }
               },
               "& .MuiTablePagination-displayedRows": {
                 marginBottom: 0,
+                fontSize: "0.875rem",
+                color: "#374151",
+                fontWeight: 500,
+              },
+              "& .MuiTablePagination-actions": {
+                marginLeft: "16px",
+                "& .MuiIconButton-root": {
+                  padding: "8px",
+                  "&:disabled": {
+                    color: "#d1d5db",
+                  },
+                  "&:not(:disabled)": {
+                    color: "#374151",
+                    "&:hover": {
+                      backgroundColor: "#f3f4f6",
+                    }
+                  }
+                }
+              },
+              "& .MuiTablePagination-spacer": {
+                flex: "1 1 100%",
               }
             }}
           />
