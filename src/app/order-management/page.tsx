@@ -10,6 +10,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  useDroppable,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -150,6 +151,33 @@ const withChecklists = (data: ColumnsData): ColumnsData => {
   return result;
 };
 
+// Drop Zone Component for empty columns
+function DropZone({ columnId }: { columnId: string }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `drop-zone-${columnId}`,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-colors ${
+        isOver 
+          ? 'border-blue-400 bg-blue-50' 
+          : 'border-gray-300 bg-gray-50'
+      }`}
+    >
+      <div className="flex items-center justify-center h-full text-gray-500">
+        <div className="text-center">
+          <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          <p className="text-sm">Drop items here</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 //  Sortable Card Component - Enhanced with image, product name, and tooltip
 function SortableItem({ id, orderId, date, productName, image, onClickItem }: OrderItem & { onClickItem?: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -224,6 +252,14 @@ export default function OrderManagementPage() {
 
   const findColumn = (id: string | number): [string | null, OrderItem | null] => {
     const idStr = id.toString();
+    
+    // Check if it's a drop zone ID
+    if (idStr.startsWith('drop-zone-')) {
+      const columnId = idStr.replace('drop-zone-', '');
+      return [columnId, null];
+    }
+    
+    // Check for items in columns
     for (const key in columns) {
       const item = columns[key].items.find((i) => i.id === idStr);
       if (item) return [key, item];
@@ -273,7 +309,7 @@ export default function OrderManagementPage() {
       }
     }
 
-    // Your original reordering / cross-column move keeps working
+    // Handle reordering within the same column
     if (activeCol === overCol) {
       const items = [...columns[activeCol].items];
       const oldIndex = items.findIndex((i) => i.id === active.id);
@@ -285,6 +321,7 @@ export default function OrderManagementPage() {
         [activeCol]: { ...columns[activeCol], items: newItems },
       });
     } else {
+      // Handle moving between different columns
       const sourceItems = [...columns[activeCol].items];
       const destItems = [...columns[overCol].items];
       const movingItem = sourceItems.find((i) => i.id === active.id);
@@ -434,19 +471,23 @@ export default function OrderManagementPage() {
 
                 {/* Column Content */}
                 <div className="flex-1 p-2">
-                  <SortableContext
-                    items={col.items.map((i) => i.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {col.items.map((item) => (
-                      <SortableItem key={item.id} {...item}
-                      onClickItem={() => handleItemClick(item, colId)}
-                       />
-                    ))}
-                  </SortableContext>
+                  {col.items.length > 0 ? (
+                    <SortableContext
+                      items={col.items.map((i) => i.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {col.items.map((item) => (
+                        <SortableItem key={item.id} {...item}
+                        onClickItem={() => handleItemClick(item, colId)}
+                         />
+                      ))}
+                    </SortableContext>
+                  ) : (
+                    <DropZone columnId={colId} />
+                  )}
                   
                   {/* Add Card Button */}
-                  <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50">
+                  <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2">
                     <div className="flex items-center justify-center">
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
