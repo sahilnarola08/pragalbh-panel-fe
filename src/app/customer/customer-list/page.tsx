@@ -55,8 +55,23 @@ const CustomerList = () => {
     fetchCustomers();
   }, [page, rowsPerPage]);
 
+  // Add debouncing for search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm) {
+        setPage(0);
+        fetchCustomers();
+      } else if (searchTerm === "") {
+        setPage(0);
+        fetchCustomers();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const handleSearch = () => {
-    setPage(0); // Reset to first page when searching
+    setPage(0); 
     fetchCustomers();
   };
 
@@ -78,7 +93,7 @@ const CustomerList = () => {
     <Box >
       <Card sx={{ mb: 3, boxShadow: "none", border: "1px solid #e0e0e0" }}>
         <CardContent>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, gap: 1 }}>
             <Typography variant="h5" component="h5" sx={{ fontWeight: 600, color: "#1a1a1a" }}>
               Customer List
             </Typography>
@@ -97,9 +112,8 @@ const CustomerList = () => {
             </Button>
           </Box>
 
-          <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={2} sx={{ mb: 3, justifyContent: "flex-end", alignItems: "center" }}>
             <TextField
-              fullWidth
               placeholder="Search customers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -107,11 +121,21 @@ const CustomerList = () => {
                 startAdornment: <SearchIcon sx={{ color: "#9ca3af", mr: 1 }} />
               }}
               sx={{
+                width: "250px",
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
+                  borderRadius: "6px",
+                  height: "36px",
                   "&:hover fieldset": {
                     borderColor: "#3b82f6"
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#3b82f6",
+                    borderWidth: "2px"
                   }
+                },
+                "& .MuiInputBase-input": {
+                  padding: "8px 12px",
+                  fontSize: "13px"
                 }
               }}
             />
@@ -120,11 +144,20 @@ const CustomerList = () => {
               onClick={handleSearch}
               sx={{
                 backgroundColor: "#10b981",
-                "&:hover": { backgroundColor: "#059669" },
-                borderRadius: "8px",
+                "&:hover": { 
+                  backgroundColor: "#059669",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)"
+                },
+                borderRadius: "6px",
                 textTransform: "none",
-                fontWeight: 500,
-                padding: "5px 20px"
+                fontWeight: 600,
+                padding: "8px 20px",
+                minWidth: "80px",
+                height: "36px",
+                fontSize: "13px",
+                boxShadow: "0 2px 8px rgba(16, 185, 129, 0.2)",
+                transition: "all 0.2s ease-in-out"
               }}
             >
               Search
