@@ -15,7 +15,7 @@ export const NAV_DATA = [
           },
           {
             title: "Customer List",
-            url: "/customer",
+            url: "/customer/customer-list",
             icon: Icons.User,
           },
         ],

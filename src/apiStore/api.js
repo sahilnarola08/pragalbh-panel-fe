@@ -11,7 +11,7 @@ const API_ENDPOINTS = {
   addSupplier: "/supplier/create",
   addOrder: "/order/create",
   addProduct: "/product/create",
- 
+  getCustomerList: "/user/users-data",
 };
 
 const apiClient = axios.create({
@@ -96,11 +96,23 @@ export const addProduct = async (Paylod) => {
   }
 };
 
+export const getCustomerList = async (params) => {
+
+  try {
+    const response = await apiClient.get(API_ENDPOINTS.getCustomerList, { params });
+    return response.data;
+  } catch (error) {
+    console.error("Error during registration:", error);
+    throw error;
+  }
+};
+
 const api = {
   register,
   addSupplier,
   addOrder,
   addProduct,
+  getCustomerList,
   };
 
 export default api;
