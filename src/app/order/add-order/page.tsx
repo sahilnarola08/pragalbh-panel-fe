@@ -69,16 +69,6 @@ const orderSchema = z.object({
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
-// Remove the mock suppliers array (around line 61-68)
-// const suppliers = [
-//   "TechCorp Inc.",
-//   "Digital Solutions Ltd.",
-//   "Electronics Pro",
-//   "Smart Devices Co.",
-//   "Future Tech",
-//   "Innovation Labs",
-// ];
-
 const orderPlatforms = [
   "Amazon",
   "eBay",
@@ -223,12 +213,6 @@ export default function OrderPage() {
   const filteredClients = clients.filter(client =>
     client.fullName && client.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Remove the client-side filtering function (around line 175)
-  // Remove this line:
-  // const filteredProducts = products.filter(product =>
-  //   product.productName && product.productName.toLowerCase().includes(productSearchQuery.toLowerCase())
-  // );
 
   // Click outside handler to close suggestions
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -557,7 +541,7 @@ export default function OrderPage() {
                             <div 
                               onClick={() => {
                                 const productName = field.value || productSearchQuery;
-                                router.push(`/product?name=${encodeURIComponent(productName)}&isOrder=true`);
+                                router.push(`/product/add-product?name=${encodeURIComponent(productName)}&isOrder=true`);
                               }}
                               className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                               Add &apos;{field.value || productSearchQuery}&apos; 
@@ -887,7 +871,7 @@ export default function OrderPage() {
                             <div 
                               onClick={() => {
                                 const supplierName = field.value || supplierSearchQuery;
-                                router.push(`/supplier?name=${encodeURIComponent(supplierName)}&isOrder=true`);
+                                router.push(`/supplier/add-supplier?name=${encodeURIComponent(supplierName)}&isOrder=true`);
                               }}
                               className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                               Add &apos;{field.value || supplierSearchQuery}&apos; 

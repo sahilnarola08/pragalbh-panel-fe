@@ -175,14 +175,14 @@ export function Sidebar() {
                               <button
                                 onClick={() => toggleExpanded(item.title)}
                                 className={cn(
-                                  "flex w-full items-center gap-3 rounded-lg px-3.5 py-3 font-medium text-dark-4 transition-all duration-200 hover:bg-gray-100 hover:text-dark dark:text-dark-6 hover:dark:bg-[#FFFFFF1A] hover:dark:text-white",
+                                  " flex w-full items-center gap-3 rounded-lg px-3.5 py-3 font-medium text-dark-4 transition-all duration-200 hover:bg-gray-100 hover:text-dark dark:text-dark-6 hover:dark:bg-[#FFFFFF1A] hover:dark:text-white",
                                   !isCollapsed ? "justify-between" : "justify-center"
                                 )}
                                 aria-expanded={expandedItems.includes(item.title)}
                               >
                                 <div className="flex items-center gap-3">
                                   <item.icon
-                                    className="size-6 shrink-0"
+                                    className="size-6 shrink-0 "
                                     aria-hidden="true"
                                   />
                                   {!isCollapsed && <span>{item.title}</span>}
