@@ -4,18 +4,28 @@ import { Box, Typography, TextField, Button, Card, CardContent, Stack, TablePagi
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import ReusableTable from "../../../components/atoms/ReusableTable";
 import { useState, useEffect } from "react";
-import { getCustomerList } from "@/apiStore/api";
+import { getOrderList } from "@/apiStore/api";
 import { useRouter } from "next/navigation";
-interface Customer {
-  id: string;
-  fullName: string;
-  email: string;
-  contactNumber: string;
+
+interface Order {
+  _id: string;
+  clientName: string;
   address: string;
+  product: string;
+  orderDate: string;
+  dispatchDate: string;
+  purchasePrice: number;
+  sellingPrice: number;
+  supplier: string;
+  orderPlatform: string;
+  otherDetails: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
-const CustomerList = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+const OrderList = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -27,12 +37,18 @@ const CustomerList = () => {
   const router = useRouter();
 
   const columns = [
-    { id: "fullName", label: "Customer", minWidth: 150 },
-    { id: "email", label: "Email", minWidth: 200 },
-    { id: "contactNumber", label: "Phone", minWidth: 120 },
-    { id: "address", label: "Address", minWidth: 200, align: "left" as const },
+    { id: "_id", label: "Order ID", minWidth: 120 },
+    { id: "clientName", label: "Client Name", minWidth: 150 },
+    { id: "product", label: "Product", minWidth: 120 },
+    { id: "orderPlatform", label: "Platform", minWidth: 100 },
+    { id: "purchasePrice", label: "Purchase Price", minWidth: 120 },
+    { id: "sellingPrice", label: "Selling Price", minWidth: 120 },
+    { id: "supplier", label: "Supplier", minWidth: 120 },
+    { id: "orderDate", label: "Order Date", minWidth: 120, align: "left" as const },
+    { id: "dispatchDate", label: "Dispatch Date", minWidth: 120, align: "left" as const },
   ];
-  const fetchCustomers = async () => {
+
+  const fetchOrders = async () => {
     setLoading(true);
     try {
       const params = {
@@ -41,20 +57,20 @@ const CustomerList = () => {
         ...(searchTerm && { search: searchTerm })
       };
       
-      const response = await getCustomerList(params);
+      const response = await getOrderList(params);
       if (response.status === 200) {
-        setCustomers(response.data.users);
-        setTotalCount(response.data.totalUsers);
+        setOrders(response.data.orders || []);
+        setTotalCount(response.data.totalCount || 0);
       }
     } catch (error) {
-      console.error("Error fetching customers:", error);
+      console.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCustomers();
+    fetchOrders();
   }, [page, rowsPerPage]);
 
   // Add debouncing for search
@@ -62,10 +78,10 @@ const CustomerList = () => {
     const timer = setTimeout(() => {
       if (searchTerm) {
         setPage(0);
-        fetchCustomers();
+        fetchOrders();
       } else if (searchTerm === "") {
         setPage(0);
-        fetchCustomers();
+        fetchOrders();
       }
     }, 500);
 
@@ -74,7 +90,7 @@ const CustomerList = () => {
 
   const handleSearch = () => {
     setPage(0); 
-    fetchCustomers();
+    fetchOrders();
   };
 
   const handleChangePage = (
@@ -91,6 +107,34 @@ const CustomerList = () => {
     setPage(0);
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getOrderId = (id: string) => {
+    return id.slice(-6).toUpperCase(); // Show last 6 characters as order ID
+  };
+
+  const getProfit = (purchasePrice: number, sellingPrice: number) => {
+    return sellingPrice - purchasePrice;
+  };
+
+  const getProfitMargin = (purchasePrice: number, sellingPrice: number) => {
+    if (purchasePrice === 0) return 0;
+    return ((sellingPrice - purchasePrice) / purchasePrice * 100).toFixed(1);
+  };
+
   return (
     <Box sx={{ width: "100%", overflow: "hidden" }}>
       <Card sx={{ mb: 3, boxShadow: "none", border: "1px solid #e0e0e0", width: "100%" }}>
@@ -104,11 +148,11 @@ const CustomerList = () => {
             flexDirection: { xs: "column", sm: "row" }
           }}>
             <Typography variant="h5" component="h5" sx={{ fontWeight: 600, color: "#1a1a1a", mb: { xs: 2, sm: 0 } }}>
-              Customer List
+              Order List
             </Typography>
             <Button
               onClick={() => {
-                router.push("/customer/add-customer");
+                router.push("/order/add-order");
               }}
               variant="contained"
               startIcon={<AddIcon />}
@@ -121,7 +165,7 @@ const CustomerList = () => {
                 width: { xs: "100%", sm: "auto" }
               }}
             >
-              Add Customer
+              Add Order
             </Button>
           </Box>
 
@@ -141,7 +185,7 @@ const CustomerList = () => {
               width: { xs: "100%", sm: "auto" }
             }}>
               <TextField
-                placeholder="Search customers..."
+                placeholder="Search orders..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -196,9 +240,18 @@ const CustomerList = () => {
           <Box sx={{ width: "100%", overflow: "hidden" }}>
             <ReusableTable
               columns={columns}
-              data={customers}
+              data={orders.map(order => ({
+                ...order,
+                _id: getOrderId(order._id),
+                purchasePrice: formatCurrency(order.purchasePrice),
+                sellingPrice: formatCurrency(order.sellingPrice),
+                orderDate: formatDate(order.orderDate),
+                dispatchDate: formatDate(order.dispatchDate),
+                supplier: order.supplier || "N/A",
+                otherDetails: order.otherDetails || "N/A"
+              }))}
               loading={loading}
-              emptyMessage="No customers found"
+              emptyMessage="No orders found"
               stickyHeader={false}
               maxHeight="auto"
             />
@@ -274,4 +327,4 @@ const CustomerList = () => {
   );
 };
 
-export default CustomerList;
+export default OrderList;
