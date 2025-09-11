@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, Suspense } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -53,6 +53,14 @@ const clientTypes = [
 ];
 
 export default function UserPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading Add Customer...</div>}>
+      <UserPageContent />
+    </Suspense>
+  );
+}
+
+ function UserPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [isSocialAccordionOpen, setIsSocialAccordionOpen] = useState(false);

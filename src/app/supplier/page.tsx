@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState ,Suspense} from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,6 +24,14 @@ const supplierSchema = z.object({
 type SupplierFormData = z.infer<typeof supplierSchema>;
 
 export default function SupplierPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading Supplier...</div>}>
+      <SupplierPageContent />
+    </Suspense>
+  );
+}
+
+function SupplierPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();

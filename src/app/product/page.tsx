@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef  ,Suspense} from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -37,8 +37,15 @@ const categories = [
   "Baby Products",
   "Other",
 ];
-
 export default function ProductPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading Product...</div>}>
+      <ProductPageContent />
+    </Suspense>
+  );
+}
+
+function ProductPageContent() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
