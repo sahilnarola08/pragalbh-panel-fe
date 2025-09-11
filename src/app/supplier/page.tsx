@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { addSupplier } from "@/apiStore/api";
 import { toast } from "react-toastify";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // Form validation schema
 const supplierSchema = z.object({
@@ -24,7 +25,10 @@ type SupplierFormData = z.infer<typeof supplierSchema>;
 
 export default function SupplierPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const name = searchParams.get("name");
+  const isOrder = searchParams.get("isOrder") === "true";
   const {
     control,
     handleSubmit,
@@ -33,7 +37,7 @@ export default function SupplierPage() {
   } = useForm<SupplierFormData>({
     resolver: zodResolver(supplierSchema),
     defaultValues: {
-      firstName: "",
+      firstName: name || "",
       lastName: "",
       companyName: "",
       contactNumber: "",
@@ -53,8 +57,15 @@ export default function SupplierPage() {
         company: data.companyName,
         advancePayment: data.advancePayment || 0,
       };
-      await addSupplier(payload);
-      toast.success("Supplier created successfully!");
+      const response = await addSupplier(payload);
+      if(response.status === 200) {
+        toast.success("Supplier created successfully!");
+        if(isOrder) {
+          router.push("/order");
+        } else {
+          router.push("/supplier");
+        }
+      }
       reset();
     } catch (error) {
       console.error("Error creating supplier:", error);

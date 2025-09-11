@@ -8,6 +8,8 @@ import Image from "next/image";
 import ImagePreviewModal from "@/components/atoms/ImagePreviewModal";
 import { addProduct } from "@/apiStore/api";
 import { toast } from "react-toastify";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 // Form validation schema
 const productSchema = z.object({
@@ -41,7 +43,10 @@ export default function ProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-
+  const searchParams = useSearchParams();
+  const name = searchParams.get("name");
+  const isOrder = searchParams.get("isOrder") === "true";
+  const router = useRouter();
   const {
     control,
     handleSubmit,
@@ -52,7 +57,7 @@ export default function ProductPage() {
     resolver: zodResolver(productSchema),
     defaultValues: {
       category: "",
-      productName: "",
+      productName: name || "",
     },
   });
 
@@ -69,7 +74,9 @@ export default function ProductPage() {
 
       await addProduct(payload);
       toast.success("Product created successfully!");
-      
+       if(isOrder) {
+        router.push("/order");
+       } 
       // Reset form and images
       reset();
       setUploadedImages([]);

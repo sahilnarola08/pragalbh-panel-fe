@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { addOrder, getCustomerList } from "@/apiStore/api";
+import { addOrder, getCustomerList, getProductList, getSupplierList } from "@/apiStore/api";
 import { toast } from "react-toastify";
 import ImagePreviewModal from "@/components/atoms/ImagePreviewModal";
 
@@ -17,6 +17,24 @@ interface Customer {
   email: string;
   contactNumber: string;
   address: string;
+}
+
+// Product interface based on API response
+interface Product {
+  _id: string;
+  productName: string;
+  category: string;
+}
+
+// Add Supplier interface after Product interface (around line 27)
+interface Supplier {
+  _id: string;
+  fullName: string;
+  contactNumber?: string;
+  email?: string;
+  address?: string;
+  firstName: string;
+  lastName: string;
 }
 
 // Form validation schema
@@ -51,26 +69,15 @@ const orderSchema = z.object({
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
-// Mock data for dropdowns
-const products = [
-  "Laptop",
-  "Smartphone",
-  "Tablet",
-  "Monitor",
-  "Keyboard",
-  "Mouse",
-  "Headphones",
-  "Speaker",
-];
-
-const suppliers = [
-  "TechCorp Inc.",
-  "Digital Solutions Ltd.",
-  "Electronics Pro",
-  "Smart Devices Co.",
-  "Future Tech",
-  "Innovation Labs",
-];
+// Remove the mock suppliers array (around line 61-68)
+// const suppliers = [
+//   "TechCorp Inc.",
+//   "Digital Solutions Ltd.",
+//   "Electronics Pro",
+//   "Smart Devices Co.",
+//   "Future Tech",
+//   "Innovation Labs",
+// ];
 
 const orderPlatforms = [
   "Amazon",
@@ -95,6 +102,21 @@ export default function OrderPage() {
   const [clients, setClients] = useState<Customer[]>([]);
   const [isLoadingClients, setIsLoadingClients] = useState(true);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  
+  // Product related state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  
+  // Product search state variables
+  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [showProductSuggestions, setShowProductSuggestions] = useState(false);
+  const [debouncedProductSearchQuery, setDebouncedProductSearchQuery] = useState("");
+  // Add supplier state variables after product search state (around line 101)
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(true);
+  const [supplierSearchQuery, setSupplierSearchQuery] = useState("");
+  const [showSupplierSuggestions, setShowSupplierSuggestions] = useState(false);
+  const [debouncedSupplierSearchQuery, setDebouncedSupplierSearchQuery] = useState("");
 
   // Debounce search query
   useEffect(() => {
@@ -103,6 +125,22 @@ export default function OrderPage() {
     }, 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Debounce product search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedProductSearchQuery(productSearchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [productSearchQuery]);
+
+  // Add supplier search debouncing (after product search debouncing)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSupplierSearchQuery(supplierSearchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [supplierSearchQuery]);
 
   // Fetch clients from API with search parameters
   const fetchClients = useCallback(async (searchTerm: string = "") => {
@@ -124,23 +162,91 @@ export default function OrderPage() {
     }
   }, []);
 
+  // Update the fetchProducts function to accept search parameters (around line 140)
+  const fetchProducts = useCallback(async (searchTerm: string = "") => {
+    try {
+      setIsLoadingProducts(true);
+      const params = searchTerm ? { search: searchTerm } : {};
+      const response = await getProductList(params);
+      
+      if (response && response.data && response.data.products) {
+        setProducts(response.data.products);
+      } else {
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setProducts([]);
+      toast.error("Error loading products. Please try again.");
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  }, []);
+
+  // Add fetchSuppliers function (after fetchProducts)
+  const fetchSuppliers = useCallback(async (searchTerm: string = "") => {
+    try {
+      setIsLoadingSuppliers(true);
+      const params = searchTerm ? { search: searchTerm } : {};
+      const response = await getSupplierList(params);
+      
+      if (response && response.data ) {
+        setSuppliers(response.data.suppliers);
+      } else {
+        setSuppliers([]);
+      }
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      setSuppliers([]);
+      toast.error("Error loading suppliers. Please try again.");
+    } finally {
+      setIsLoadingSuppliers(false);
+    }
+  }, []);
+
   // Initial load and search with debounced query
   useEffect(() => {
     fetchClients(debouncedSearchQuery);
   }, [debouncedSearchQuery, fetchClients]);
+
+  // Add useEffect to fetch products with search (after the existing useEffect for products)
+  useEffect(() => {
+    fetchProducts(debouncedProductSearchQuery);
+  }, [debouncedProductSearchQuery, fetchProducts]);
+
+  // Add useEffect to fetch suppliers with search
+  useEffect(() => {
+    fetchSuppliers(debouncedSupplierSearchQuery);
+  }, [debouncedSupplierSearchQuery, fetchSuppliers]);
 
   // Filter clients based on search query (client-side filtering as backup)
   const filteredClients = clients.filter(client =>
     client.fullName && client.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Remove the client-side filtering function (around line 175)
+  // Remove this line:
+  // const filteredProducts = products.filter(product =>
+  //   product.productName && product.productName.toLowerCase().includes(productSearchQuery.toLowerCase())
+  // );
+
   // Click outside handler to close suggestions
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const productSuggestionsRef = useRef<HTMLDivElement>(null);
+  // Add supplier suggestions ref
+  const supplierSuggestionsRef = useRef<HTMLDivElement>(null);
 
+  // Update click outside handler to include supplier suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
+      }
+      if (productSuggestionsRef.current && !productSuggestionsRef.current.contains(event.target as Node)) {
+        setShowProductSuggestions(false);
+      }
+      if (supplierSuggestionsRef.current && !supplierSuggestionsRef.current.contains(event.target as Node)) {
+        setShowSupplierSuggestions(false);
       }
     };
 
@@ -398,17 +504,68 @@ export default function OrderPage() {
                   name="product"
                   control={control}
                   render={({ field }) => (
-                    <select
-                      {...field}
-                      className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                    >
-                      <option value="">Select a product</option>
-                      {products.map((product) => (
-                        <option key={product} value={product}>
-                          {product}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        <input
+                          {...field}
+                          type="text"
+                          className="mt-1 block w-full rounded-lg border border-gray-300 pl-10 pr-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
+                          placeholder="Search or enter product name"
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setProductSearchQuery(e.target.value);
+                            setShowProductSuggestions(true);
+                          }}
+                          onFocus={() => setShowProductSuggestions(true)}
+                        />
+                      </div>
+
+                      {/* Loading indicator */}
+                      {isLoadingProducts && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg className="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </div>
+                      )}
+
+                      {/* Product Suggestions Dropdown */}
+                      {showProductSuggestions && (field.value || productSearchQuery) && !isLoadingProducts && (
+                        <div ref={productSuggestionsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
+                          {/* Existing products */}
+                          {products.length > 0 ? (
+                            products.map((product) => (
+                              <div
+                                key={product._id}
+                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300"
+                                onClick={() => {
+                                  field.onChange(product.productName);
+                                  setShowProductSuggestions(false);
+                                  setProductSearchQuery('');
+                                }}
+                              >
+                                {product.productName} ({product.category})
+                              </div>
+                            ))
+                          ) : (
+                            <div 
+                              onClick={() => {
+                                const productName = field.value || productSearchQuery;
+                                router.push(`/product?name=${encodeURIComponent(productName)}&isOrder=true`);
+                              }}
+                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
+                              Add &apos;{field.value || productSearchQuery}&apos; 
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
                 />
                 {errors.product && (
@@ -521,7 +678,7 @@ export default function OrderPage() {
                         } else {
                           const numValue = parseFloat(value);
                           if (isNaN(numValue)) {
-                            field.onChange(value); // Keep invalid input to trigger validation
+                            field.onChange(value); 
                           } else {
                             field.onChange(numValue);
                           }
@@ -677,17 +834,68 @@ export default function OrderPage() {
                   name="supplier"
                   control={control}
                   render={({ field }) => (
-                    <select
-                      {...field}
-                      className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                    >
-                      <option value="">Select a supplier (optional)</option>
-                      {suppliers.map((supplier) => (
-                        <option key={supplier} value={supplier}>
-                          {supplier}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        <input
+                          {...field}
+                          type="text"
+                          className="mt-1 block w-full rounded-lg border border-gray-300 pl-10 pr-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
+                          placeholder="Search or enter supplier name"
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setSupplierSearchQuery(e.target.value);
+                            setShowSupplierSuggestions(true);
+                          }}
+                          onFocus={() => setShowSupplierSuggestions(true)}
+                        />
+                      </div>
+
+                      {/* Loading indicator */}
+                      {isLoadingSuppliers && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg className="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </div>
+                      )}
+
+                      {/* Supplier Suggestions Dropdown */}
+                      {showSupplierSuggestions && (field.value || supplierSearchQuery) && !isLoadingSuppliers && (
+                        <div ref={supplierSuggestionsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
+                          {/* Existing suppliers */}
+                          {suppliers.length > 0 ? (
+                            suppliers.map((supplier) => (
+                              <div
+                                key={supplier._id}
+                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300"
+                                onClick={() => {
+                                  field.onChange(supplier.fullName);
+                                  setShowSupplierSuggestions(false);
+                                  setSupplierSearchQuery('');
+                                }}
+                              >
+                                {supplier.fullName}
+                              </div>
+                            ))
+                          ) : (
+                            <div 
+                              onClick={() => {
+                                const supplierName = field.value || supplierSearchQuery;
+                                router.push(`/supplier?name=${encodeURIComponent(supplierName)}&isOrder=true`);
+                              }}
+                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
+                              Add &apos;{field.value || supplierSearchQuery}&apos; 
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
                 />
                 {errors.supplier && (
