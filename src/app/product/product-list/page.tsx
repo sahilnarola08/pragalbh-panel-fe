@@ -4,18 +4,20 @@ import { Box, Typography, TextField, Button, Card, CardContent, Stack, TablePagi
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import ReusableTable from "../../../components/atoms/ReusableTable";
 import { useState, useEffect } from "react";
-import { getCustomerList } from "@/apiStore/api";
+import { getProductList } from "@/apiStore/api";
 import { useRouter } from "next/navigation";
-interface Customer {
-  id: string;
-  fullName: string;
-  email: string;
-  contactNumber: string;
-  address: string;
+
+interface Product {
+  _id: string;
+  category: string;
+  productName: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
-const CustomerList = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+const ProductList = () => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -27,12 +29,14 @@ const CustomerList = () => {
   const router = useRouter();
 
   const columns = [
-    { id: "fullName", label: "Customer", minWidth: 150 },
-    { id: "email", label: "Email", minWidth: 200 },
-    { id: "contactNumber", label: "Phone", minWidth: 120 },
-    { id: "address", label: "Address", minWidth: 200, align: "left" as const },
+    { id: "_id", label: "Product ID", minWidth: 120 },
+    { id: "productName", label: "Product Name", minWidth: 200 },
+    { id: "category", label: "Category", minWidth: 150 },
+    { id: "createdAt", label: "Created Date", minWidth: 120, align: "left" as const },
+    { id: "updatedAt", label: "Updated Date", minWidth: 120, align: "left" as const },
   ];
-  const fetchCustomers = async () => {
+
+  const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = {
@@ -41,20 +45,20 @@ const CustomerList = () => {
         ...(searchTerm && { search: searchTerm })
       };
       
-      const response = await getCustomerList(params);
+      const response = await getProductList(params);
       if (response.status === 200) {
-        setCustomers(response.data.users);
-        setTotalCount(response.data.totalUsers);
+        setProducts(response.data.products || []);
+        setTotalCount(response.data.totalCount || 0);
       }
     } catch (error) {
-      console.error("Error fetching customers:", error);
+      console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCustomers();
+    fetchProducts();
   }, [page, rowsPerPage]);
 
   // Add debouncing for search
@@ -62,10 +66,10 @@ const CustomerList = () => {
     const timer = setTimeout(() => {
       if (searchTerm) {
         setPage(0);
-        fetchCustomers();
+        fetchProducts();
       } else if (searchTerm === "") {
         setPage(0);
-        fetchCustomers();
+        fetchProducts();
       }
     }, 500);
 
@@ -74,7 +78,7 @@ const CustomerList = () => {
 
   const handleSearch = () => {
     setPage(0); 
-    fetchCustomers();
+    fetchProducts();
   };
 
   const handleChangePage = (
@@ -91,6 +95,32 @@ const CustomerList = () => {
     setPage(0);
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getProductId = (id: string) => {
+    return id.slice(-6).toUpperCase(); // Show last 6 characters as product ID
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      'Electronics': '#3b82f6',
+      'Books & Media': '#10b981',
+      'Toys & Games': '#f59e0b',
+      'jewellery': '#ef4444',
+      'bueaty': '#8b5cf6',
+      'cotton': '#06b6d4',
+      'Electronicss': '#3b82f6',
+      'default': '#6b7280'
+    };
+    return colors[category as keyof typeof colors] || colors.default;
+  };
+
   return (
     <Box sx={{ width: "100%", overflow: "hidden" }}>
       <Card sx={{ mb: 3, boxShadow: "none", border: "1px solid #e0e0e0", width: "100%" }}>
@@ -104,11 +134,11 @@ const CustomerList = () => {
             flexDirection: { xs: "column", sm: "row" }
           }}>
             <Typography variant="h5" component="h5" sx={{ fontWeight: 600, color: "#1a1a1a", mb: { xs: 2, sm: 0 } }}>
-              Customer List
+              Product List
             </Typography>
             <Button
               onClick={() => {
-                router.push("/customer/add-customer");
+                router.push("/product/add-product");
               }}
               variant="contained"
               startIcon={<AddIcon />}
@@ -121,7 +151,7 @@ const CustomerList = () => {
                 width: { xs: "100%", sm: "auto" }
               }}
             >
-              Add Customer
+              Add Product
             </Button>
           </Box>
 
@@ -141,7 +171,7 @@ const CustomerList = () => {
               width: { xs: "100%", sm: "auto" }
             }}>
               <TextField
-                placeholder="Search customers..."
+                placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -196,9 +226,26 @@ const CustomerList = () => {
           <Box sx={{ width: "100%", overflow: "hidden" }}>
             <ReusableTable
               columns={columns}
-              data={customers}
+              data={products.map(product => ({
+                ...product,
+                _id: getProductId(product._id),
+                category: (
+                  <Chip
+                    label={product.category}
+                    size="small"
+                    sx={{
+                      backgroundColor: getCategoryColor(product.category),
+                      color: 'white',
+                      fontWeight: 500,
+                      fontSize: '0.75rem'
+                    }}
+                  />
+                ),
+                createdAt: formatDate(product.createdAt),
+                updatedAt: formatDate(product.updatedAt)
+              }))}
               loading={loading}
-              emptyMessage="No customers found"
+              emptyMessage="No products found"
               stickyHeader={false}
               maxHeight="auto"
             />
@@ -274,4 +321,4 @@ const CustomerList = () => {
   );
 };
 
-export default CustomerList;
+export default ProductList;
