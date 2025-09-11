@@ -4,18 +4,26 @@ import { Box, Typography, TextField, Button, Card, CardContent, Stack, TablePagi
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import ReusableTable from "../../../components/atoms/ReusableTable";
 import { useState, useEffect } from "react";
-import { getCustomerList } from "@/apiStore/api";
+import { getSupplierList } from "@/apiStore/api";
 import { useRouter } from "next/navigation";
-interface Customer {
-  id: string;
-  fullName: string;
-  email: string;
-  contactNumber: string;
+
+interface Supplier {
+  _id: string;
+  firstName: string;
+  lastName: string;
   address: string;
+  contactNumber: string;
+  company: string;
+  advancePayment: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  fullName: string;
+  id: string;
 }
 
-const CustomerList = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+const SupplierList = () => {
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -27,12 +35,16 @@ const CustomerList = () => {
   const router = useRouter();
 
   const columns = [
-    { id: "fullName", label: "Customer", minWidth: 150 },
-    { id: "email", label: "Email", minWidth: 200 },
-    { id: "contactNumber", label: "Phone", minWidth: 120 },
+    { id: "_id", label: "Supplier ID", minWidth: 120 },
+    { id: "fullName", label: "Full Name", minWidth: 150 },
+    { id: "company", label: "Company", minWidth: 150 },
+    { id: "contactNumber", label: "Contact", minWidth: 120 },
+    { id: "advancePayment", label: "Advance Payment", minWidth: 140 },
     { id: "address", label: "Address", minWidth: 200, align: "left" as const },
+    { id: "createdAt", label: "Created Date", minWidth: 120, align: "left" as const },
   ];
-  const fetchCustomers = async () => {
+
+  const fetchSuppliers = async () => {
     setLoading(true);
     try {
       const params = {
@@ -41,20 +53,20 @@ const CustomerList = () => {
         ...(searchTerm && { search: searchTerm })
       };
       
-      const response = await getCustomerList(params);
+      const response = await getSupplierList(params);
       if (response.status === 200) {
-        setCustomers(response.data.users);
-        setTotalCount(response.data.totalUsers);
+        setSuppliers(response.data.suppliers || []);
+        setTotalCount(response.data.totalCount || 0);
       }
     } catch (error) {
-      console.error("Error fetching customers:", error);
+      console.error("Error fetching suppliers:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCustomers();
+    fetchSuppliers();
   }, [page, rowsPerPage]);
 
   // Add debouncing for search
@@ -62,10 +74,10 @@ const CustomerList = () => {
     const timer = setTimeout(() => {
       if (searchTerm) {
         setPage(0);
-        fetchCustomers();
+        fetchSuppliers();
       } else if (searchTerm === "") {
         setPage(0);
-        fetchCustomers();
+        fetchSuppliers();
       }
     }, 500);
 
@@ -74,7 +86,7 @@ const CustomerList = () => {
 
   const handleSearch = () => {
     setPage(0); 
-    fetchCustomers();
+    fetchSuppliers();
   };
 
   const handleChangePage = (
@@ -91,6 +103,35 @@ const CustomerList = () => {
     setPage(0);
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getSupplierId = (id: string) => {
+    return id.slice(-6).toUpperCase(); // Show last 6 characters as supplier ID
+  };
+
+  const getAdvancePaymentStatus = (amount: number) => {
+    if (amount >= 100000) {
+      return { color: '#10b981', label: 'High' };
+    } else if (amount >= 10000) {
+      return { color: '#f59e0b', label: 'Medium' };
+    } else {
+      return { color: '#ef4444', label: 'Low' };
+    }
+  };
+
   return (
     <Box sx={{ width: "100%", overflow: "hidden" }}>
       <Card sx={{ mb: 3, boxShadow: "none", border: "1px solid #e0e0e0", width: "100%" }}>
@@ -104,11 +145,11 @@ const CustomerList = () => {
             flexDirection: { xs: "column", sm: "row" }
           }}>
             <Typography variant="h5" component="h5" sx={{ fontWeight: 600, color: "#1a1a1a", mb: { xs: 2, sm: 0 } }}>
-              Customer List
+              Supplier List
             </Typography>
             <Button
               onClick={() => {
-                router.push("/customer/add-customer");
+                router.push("/supplier/add-supplier");
               }}
               variant="contained"
               startIcon={<AddIcon />}
@@ -121,7 +162,7 @@ const CustomerList = () => {
                 width: { xs: "100%", sm: "auto" }
               }}
             >
-              Add Customer
+              Add Supplier
             </Button>
           </Box>
 
@@ -141,7 +182,7 @@ const CustomerList = () => {
               width: { xs: "100%", sm: "auto" }
             }}>
               <TextField
-                placeholder="Search customers..."
+                placeholder="Search suppliers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -196,9 +237,33 @@ const CustomerList = () => {
           <Box sx={{ width: "100%", overflow: "hidden" }}>
             <ReusableTable
               columns={columns}
-              data={customers}
+              data={suppliers.map(supplier => {
+                const paymentStatus = getAdvancePaymentStatus(supplier.advancePayment);
+                return {
+                  ...supplier,
+                  _id: getSupplierId(supplier._id),
+                  advancePayment: (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {formatCurrency(supplier.advancePayment)}
+                      </Typography>
+                      <Chip
+                        label={paymentStatus.label}
+                        size="small"
+                        sx={{
+                          backgroundColor: paymentStatus.color,
+                          color: 'white',
+                          fontWeight: 500,
+                          fontSize: '0.7rem'
+                        }}
+                      />
+                    </Box>
+                  ),
+                  createdAt: formatDate(supplier.createdAt)
+                };
+              })}
               loading={loading}
-              emptyMessage="No customers found"
+              emptyMessage="No suppliers found"
               stickyHeader={false}
               maxHeight="auto"
             />
@@ -274,4 +339,4 @@ const CustomerList = () => {
   );
 };
 
-export default CustomerList;
+export default SupplierList;
