@@ -11,12 +11,12 @@ export const NAV_DATA = [
           {
             title: "Add Customer",
             url: "/customer/add-customer",
-            icon: Icons.User,
+            icon: Icons.AddIcon,
           },
           {
             title: "Customer List",
             url: "/customer/customer-list",
-            icon: Icons.User,
+            icon: Icons.ListIcon,
           },
         ],
       },
@@ -28,12 +28,12 @@ export const NAV_DATA = [
           {
             title: "Add Order",
             url: "/order/add-order",
-            icon: Icons.Table,
+            icon: Icons.AddIcon,
           },
           {
             title: "Order List",
             url: "/order/order-list",
-            icon: Icons.Table,
+            icon: Icons.ListIcon,
           },
         ],
       },
@@ -45,12 +45,12 @@ export const NAV_DATA = [
           {
             title: "Add Product",
             url: "/product/add-product",
-            icon: Icons.FourCircle,
+            icon: Icons.AddIcon,
           },
           {
             title: "Product List",
             url: "/product/product-list",
-            icon: Icons.FourCircle,
+            icon: Icons.ListIcon,
           },
         ],
       },
@@ -62,12 +62,12 @@ export const NAV_DATA = [
           {
             title: "Add Supplier",
             url: "/supplier/add-supplier",
-            icon: Icons.HomeIcon,
+            icon: Icons.AddIcon,
           },
           {
             title: "Supplier List",
             url: "/supplier/supplier-list",
-            icon: Icons.HomeIcon,
+            icon: Icons.ListIcon,
           },
         ],
       },
