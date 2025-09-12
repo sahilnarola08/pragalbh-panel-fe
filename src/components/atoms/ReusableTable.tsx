@@ -48,7 +48,7 @@ const ReusableTable: React.FC<ReusableTableProps> = ({
           maxHeight: maxHeight === "auto" ? "none" : maxHeight,
           boxShadow: "none",
           border: "1px solid #e0e0e0",
-          borderRadius: "8px",
+          // borderRadius: "8px",
           width: "100%",
           overflow: "hidden"
         }}
