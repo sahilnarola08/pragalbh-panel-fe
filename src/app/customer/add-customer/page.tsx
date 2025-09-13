@@ -170,7 +170,7 @@ export default function UserPage() {
       if (response.status === 200) {
         // Redirect based on isOrder parameter
         if (isOrder) {
-          router.push("/order");
+          router.push("/order/add-order");
         } else {
           router.push("/customer/customer-list");
         }

@@ -20,21 +20,21 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// Updated OrderItem to match the backend data structure
+interface OrderItem {
+  _id: string; // Using _id from MongoDB
+  orderId: string;
+  orderDate: string; // Using orderDate from the backend
+  product: string; // Using product from the backend
+  productImage: string;
+  checklist?: ChecklistItem[];
+}
 
 interface ChecklistItem {
   id: string;
   label: string;
   checked: boolean;
   required?: boolean;
-}
-
-interface OrderItem {
-  id: string;
-  orderId: string;
-  date: string;
-  productName: string;
-  image: string;
-  checklist?: ChecklistItem[]; 
 }
 
 interface ColumnData {
@@ -47,86 +47,6 @@ interface ColumnsData {
   [key: string]: ColumnData;
 }
 
-const initialData: ColumnsData = {
-  "over-due": {
-    title: "Over Due",
-    color: "bg-red-50 border-red-200",
-    items: [
-      { id: "15", orderId: "ORD-10001", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
-      { id: "16", orderId: "ORD-10002", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
-      { id: "17", orderId: "ORD-10003", date: "2025-08-28", productName: "Pearl Earrings Set", image: "/images/ring-image.png" },
-    ],
-  },
-  "stock": {
-    title: "Stock",
-    color: "bg-green-50 border-green-200",
-    items: [
-      { id: "18", orderId: "ORD-10004", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
-      { id: "19", orderId: "ORD-10005", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
-      { id: "20", orderId: "ORD-10006", date: "2025-08-28", productName: "Pearl Earrings Set", image: "/images/ring-image.png" },
-    ],
-  },
-  "pending-order": {
-    title: "Pending Order",
-    color: " border-yellow-200",
-    items: [
-      { id: "", orderId: "ORD-1001", date: "2025-08-30", productName: "Diamond Engagement Ring", image: "/images/ring-image.png" },
-      { id: "2", orderId: "ORD-1002", date: "2025-08-29", productName: "Gold Necklace Chain", image: "/images/ring-image.png" },
-      { id: "3", orderId: "ORD-1003", date: "2025-08-28", productName: "Pearl Earrings Set", image: "/images/ring-image.png" },
-    ],
-  },
-  "factory-process": {
-    title: "Factory Process",
-    color: "bg-blue-50 border-blue-200",
-    items: [
-      { id: "4", orderId: "ORD-1004", date: "2025-08-27", productName: "Sapphire Bracelet", image: "/images/ring-image.png" },
-      { id: "5", orderId: "ORD-1005", date: "2025-08-26", productName: "Ruby Pendant", image: "/images/ring-image.png" },
-    ],
-  },
-  "video-confirmation": { 
-    title: "Video Confirmation", 
-    color: "bg-purple-50 border-purple-200",
-    items: [
-      { id: "6", orderId: "ORD-1006", date: "2025-08-25", productName: "Emerald Ring", image: "/images/ring-image.png" },
-    ] 
-  },
-  "dispatch": { 
-    title: "Dispatch", 
-    color: "bg-orange-50 border-orange-200",
-    items: [
-      { id: "7", orderId: "ORD-1007", date: "2025-08-24", productName: "Silver Anklet", image: "/images/ring-image.png" },
-    ] 
-  },
-  "updated-tracking": { 
-    title: "Updated Tracking ID", 
-    color: "bg-indigo-50 border-indigo-200",
-    items: [
-      { id: "8", orderId: "ORD-1008", date: "2025-08-23", productName: "Platinum Wedding Band", image: "/images/ring-image.png" },
-    ] 
-  },
-  "delivery-confirmation": { 
-    title: "Delivery Confirmation", 
-    color: "bg-green-50 border-green-200",
-    items: [
-      { id: "9", orderId: "ORD-1009", date: "2025-08-22", productName: "Diamond Tennis Bracelet", image: "/images/ring-image.png" },
-    ] 
-  },
-  "review": { 
-    title: "Review", 
-    color: "bg-pink-50 border-pink-200",
-    items: [
-      { id: "10", orderId: "ORD-1010", date: "2025-08-21", productName: "Gold Bangle Set", image: "/images/ring-image.png" },
-    ] 
-  },
-  "done": { 
-    title: "Done", 
-    color: "bg-gray-50 border-gray-200",
-    items: [
-      { id: "11", orderId: "ORD-1011", date: "2025-08-20", productName: "Pearl Necklace", image: "/images/ring-image.png" },
-      { id: "12", orderId: "ORD-1012", date: "2025-08-19", productName: "Silver Ring", image: "/images/ring-image.png" },
-    ] 
-  },
-};
 
 const checklistTemplate: ChecklistItem[] = [
   { id: "diamonds", label: "Check Diamonds", checked: false, required: true },
@@ -137,7 +57,7 @@ const checklistTemplate: ChecklistItem[] = [
 ];
 
 const withChecklists = (data: ColumnsData): ColumnsData => {
-  const target = new Set(["over-due", "stock", "pending-order"]);
+  const target = new Set(["over_due", "stock", "pending"]);
   const result: ColumnsData = {};
   for (const key in data) {
     const col = data[key];
@@ -161,8 +81,8 @@ function DropZone({ columnId }: { columnId: string }) {
     <div
       ref={setNodeRef}
       className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-colors ${
-        isOver 
-          ? 'border-blue-400 bg-blue-50' 
+        isOver
+          ? 'border-blue-400 bg-blue-50'
           : 'border-gray-300 bg-gray-50'
       }`}
     >
@@ -179,9 +99,9 @@ function DropZone({ columnId }: { columnId: string }) {
 }
 
 //  Sortable Card Component - Enhanced with image, product name, and tooltip
-function SortableItem({ id, orderId, date, productName, image, onClickItem }: OrderItem & { onClickItem?: () => void }) {
+function SortableItem({ _id, orderId, orderDate, product, productImage, onClickItem }: OrderItem & { onClickItem?: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
+    useSortable({ id: _id }); // Use _id as the dnd-kit id
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -213,73 +133,150 @@ function SortableItem({ id, orderId, date, productName, image, onClickItem }: Or
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-gray-800 mb-1 truncate">{orderId}</p>
-          <p className="text-xs text-gray-600 mb-1">{date}</p>
-          <p className="text-xs text-gray-600 truncate">{productName.slice(0, 20)}...</p>
+          <p className="text-xs text-gray-600 mb-1">{new Date(orderDate).toLocaleDateString()}</p>
+          <p className="text-xs text-gray-600 truncate">{product.slice(0, 20)}...</p>
         </div>
         <div className="flex-shrink-0">
-          <Image 
-            src={image} 
-            alt={orderId} 
-            width={40} 
-            height={40} 
-            className="w-10 h-10 rounded-lg object-cover" 
+          <Image
+            src={productImage}
+            alt={orderId}
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-lg object-cover"
           />
         </div>
       </div>
-      
+
       {/* Tooltip for full product name */}
       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-        {productName}
+        {product}
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
       </div>
     </div>
   );
 }
 
+const columnTitles = {
+  over_due: "Over Due",
+  stock: "Stock",
+  pending: "Pending Order",
+  factory_process: "Factory Process",
+  video_confirmation: "Video Confirmation",
+  dispatch: "Dispatch",
+  updated_tracking_id: "Updated Tracking ID",
+  delivery_confirmation: "Delivery Confirmation",
+  review: "Review",
+  done: "Done",
+};
+
+const columnColors = {
+  over_due: "bg-red-50 border-red-200",
+  stock: "bg-green-50 border-green-200",
+  pending: " border-yellow-200",
+  factory_process: "bg-blue-50 border-blue-200",
+  video_confirmation: "bg-purple-50 border-purple-200",
+  dispatch: "bg-orange-50 border-orange-200",
+  updated_tracking_id: "bg-indigo-50 border-indigo-200",
+  delivery_confirmation: "bg-green-50 border-green-200",
+  review: "bg-pink-50 border-pink-200",
+  done: "bg-gray-50 border-gray-200",
+};
+
+// New array to define the fixed order of columns
+const kanbanOrder = [
+  'over_due',
+  'stock',
+  'pending',
+  'factory_process',
+  'video_confirmation',
+  'dispatch',
+  'updated_tracking_id',
+  'delivery_confirmation',
+  'review',
+  'done'
+];
+
 export default function OrderManagementPage() {
-  const [columns, setColumns] = useState<ColumnsData>(() => withChecklists(initialData));
+  const [columns, setColumns] = useState<ColumnsData>({});
   const [isClient, setIsClient] = useState(false);
   const [isCheckListModalOpen, setIsCheckListModalOpen] = useState(false);
   const [activeItem, setActiveItem] = useState<OrderItem | null>(null);
   const [pendingDragItem, setPendingDragItem] = useState<OrderItem | null>(null);
   const [pendingDragSource, setPendingDragSource] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Function to fetch data from the API
+  const fetchKanbanData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("http://localhost:8001/order/kanban-board");
+      if (!response.ok) {
+        throw new Error("Failed to fetch Kanban data");
+      }
+      const data = await response.json();
+      const apiData = data.data;
+
+      // Map API data to frontend structure
+      const formattedData: ColumnsData = {};
+      for (const status in apiData) {
+        if (columnTitles[status as keyof typeof columnTitles]) {
+          formattedData[status] = {
+            title: columnTitles[status as keyof typeof columnTitles],
+            color: columnColors[status as keyof typeof columnColors],
+            items: apiData[status],
+          };
+        }
+      }
+      setColumns(withChecklists(formattedData));
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);
+    fetchKanbanData();
   }, []);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
   const findColumn = (id: string | number): [string | null, OrderItem | null] => {
     const idStr = id.toString();
-    
+
     // Check if it's a drop zone ID
     if (idStr.startsWith('drop-zone-')) {
       const columnId = idStr.replace('drop-zone-', '');
       return [columnId, null];
     }
-    
+
     // Check for items in columns
     for (const key in columns) {
-      const item = columns[key].items.find((i) => i.id === idStr);
+      const item = columns[key].items.find((i) => i._id === idStr); // Use _id here
       if (item) return [key, item];
     }
     return [null, null];
   };
 
-  const moveItem = (fromCol: string, toCol: string, itemId: string) => {
-    setColumns(prev => {
-      const sourceItems = [...prev[fromCol].items];
-      const destItems = [...prev[toCol].items];
-      const moving = sourceItems.find(i => i.id === itemId);
-      if (!moving) return prev;
-
-      return {
-        ...prev,
-        [fromCol]: { ...prev[fromCol], items: sourceItems.filter(i => i.id !== itemId) },
-        [toCol]: { ...prev[toCol], items: [...destItems, moving] },
-      };
-    });
+  const updateStatusApi = async (orderId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`http://localhost:8001/order/update-status/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update order status');
+      }
+      // Re-fetch data to reflect the change
+      await fetchKanbanData();
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -290,14 +287,14 @@ export default function OrderManagementPage() {
     const [overCol] = findColumn(over.id);
     if (!activeCol || !overCol || !draggedItem) return;
 
-    const sourceColumns = ["over-due", "stock", "pending-order"];
+    const sourceColumns = ["over_due", "stock", "pending"];
 
     // Gate only when moving into Factory Process from the 3 source columns
-    if (overCol === "factory-process" && sourceColumns.includes(activeCol)) {
+    if (overCol === "factory_process" && sourceColumns.includes(activeCol)) {
       const allChecked = (draggedItem.checklist ?? []).every(c => c.checked);
       if (allChecked) {
-        // allow move directly
-        moveItem(activeCol, "factory-process", draggedItem.id);
+        // allow move directly and call API
+        updateStatusApi(draggedItem._id, "factory_process");
         return;
       } else {
         // open modal to complete checks, then move after save
@@ -312,8 +309,8 @@ export default function OrderManagementPage() {
     // Handle reordering within the same column
     if (activeCol === overCol) {
       const items = [...columns[activeCol].items];
-      const oldIndex = items.findIndex((i) => i.id === active.id);
-      const newIndex = items.findIndex((i) => i.id === over.id);
+      const oldIndex = items.findIndex((i) => i._id === active.id);
+      const newIndex = items.findIndex((i) => i._id === over.id);
       const newItems = arrayMove(items, oldIndex, newIndex);
 
       setColumns({
@@ -322,114 +319,73 @@ export default function OrderManagementPage() {
       });
     } else {
       // Handle moving between different columns
-      const sourceItems = [...columns[activeCol].items];
-      const destItems = [...columns[overCol].items];
-      const movingItem = sourceItems.find((i) => i.id === active.id);
-
-      if (movingItem) {
-        setColumns({
-          ...columns,
-          [activeCol]: {
-            ...columns[activeCol],
-            items: sourceItems.filter((i) => i.id !== active.id),
-          },
-          [overCol]: { ...columns[overCol], items: [...destItems, movingItem] },
-        });
-      }
+      updateStatusApi(draggedItem._id, overCol);
     }
   };
-  
+
   const handleCheckListSave = (checkedItems: ChecklistItem[]) => {
+    const allChecked = checkedItems.every(c => c.checked);
+    if (pendingDragItem && pendingDragSource && allChecked) {
+      updateStatusApi(pendingDragItem._id, "factory_process");
+    }
+
     setColumns(prev => {
       let updated: ColumnsData = { ...prev };
-
-      // update checklist on the active item wherever it is
       for (const key in updated) {
         updated[key] = {
           ...updated[key],
           items: updated[key].items.map(i =>
-            activeItem && i.id === activeItem.id ? { ...i, checklist: checkedItems } : i
+            activeItem && i._id === activeItem._id ? { ...i, checklist: checkedItems } : i
           ),
         };
       }
-
-      // if we came from a drag gate, and all are checked, move it now
-      if (pendingDragItem && pendingDragSource) {
-        const allChecked = checkedItems.every(c => c.checked);
-        if (allChecked) {
-          const srcItems = updated[pendingDragSource].items;
-          const exists = srcItems.find(i => i.id === pendingDragItem.id);
-          if (exists) {
-            updated[pendingDragSource] = {
-              ...updated[pendingDragSource],
-              items: srcItems.filter(i => i.id !== pendingDragItem.id),
-            };
-            updated["factory-process"] = {
-              ...updated["factory-process"],
-              items: [...updated["factory-process"].items, { ...exists, checklist: checkedItems }],
-            };
-          }
-        }
-      }
-
       return updated;
     });
 
-    // reset gate/click state
     setPendingDragItem(null);
     setPendingDragSource(null);
     setActiveItem(null);
+    setIsCheckListModalOpen(false);
   };
 
  const handleCheckListCancel = () => {
     setPendingDragItem(null);
     setPendingDragSource(null);
     setActiveItem(null);
+    setIsCheckListModalOpen(false);
   };
 
-  const clickable = new Set(["over-due", "stock", "pending-order"]);
+  const clickable = new Set(["over_due", "stock", "pending"]);
   const handleItemClick = (item: OrderItem, colId: string) => {
     if (!clickable.has(colId)) return;
     setActiveItem(item);
     setIsCheckListModalOpen(true);
   };
-  // Show loading state until client-side is ready to prevent hydration mismatch
-  if (!isClient) {
+
+  if (!isClient || isLoading) {
     return (
       <div className="h-100 p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 w-full">
         <div className="max-w-8xl mx-auto ">
           <div className="flex gap-2 overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            {Object.entries(initialData).map(([colId, col]) => (
+            {kanbanOrder.map((colId) => (
               <div
                 key={colId}
-                className={`bg-white w-80 sm:w-80 md:w-80 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] scroll-hidden`}
+                className={`bg-white w-80 sm:w-80 md:w-80 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${columnColors[colId as keyof typeof columnColors]} flex flex-col min-h-[600px] scroll-hidden`}
               >
                 <div className="p-4 border-b border-gray-200">
                   <div className="flex items-center justify-center mb-2">
                     <h2 className="text-base font-semibold text-gray-700">
-                      {col.title}
+                      {columnTitles[colId as keyof typeof columnTitles]}
                     </h2>
                   </div>
                 </div>
                 <div className="flex-1 p-2">
-                  {col.items.map((item) => (
-                    <div key={item.id} className="bg-white border border-gray-200 p-3 rounded-xl shadow-sm mb-3 animate-pulse">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
-                        <div className="flex-1">
-                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded mb-1"></div>
-                          <div className="h-3 bg-gray-200 rounded"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                   <div className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500">
                     <div className="flex items-center justify-center">
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                      Add Order
+                      Loading...
                     </div>
                   </div>
                 </div>
@@ -454,50 +410,54 @@ export default function OrderManagementPage() {
           onDragEnd={handleDragEnd}
         >
           {/* All columns in a single scrollable row */}
-          <div className="flex gap-4 overflow-x-auto pb-4 h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100  ">  
-            {Object.entries(columns).map(([colId, col]) => (
-              <div
-                key={colId}
-                className={`bg-white w-72 sm:w-74  lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0`}
-              >
-                {/* Column Header */}
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center justify-center mb-2">
-                    <h2 className="text-base font-semibold text-gray-700">
-                      {col.title}
-                    </h2>
+          <div className="flex gap-4 overflow-x-auto pb-4 h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100  ">
+            {kanbanOrder.map((colId) => {
+              const col = columns[colId];
+              if (!col) return null; // Ensure the column data exists before rendering
+              return (
+                <div
+                  key={colId}
+                  className={`bg-white w-72 sm:w-74  lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0`}
+                >
+                  {/* Column Header */}
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-center mb-2">
+                      <h2 className="text-base font-semibold text-gray-700">
+                        {col.title}
+                      </h2>
+                    </div>
+                  </div>
+
+                  {/* Column Content */}
+                  <div className="flex-1 p-2">
+                    {col.items.length > 0 ? (
+                      <SortableContext
+                        items={col.items.map((i) => i._id)} // Use _id here
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {col.items.map((item) => (
+                          <SortableItem key={item._id} {...item}
+                          onClickItem={() => handleItemClick(item, colId)}
+                           />
+                        ))}
+                      </SortableContext>
+                    ) : (
+                      <DropZone columnId={colId} />
+                    )}
+
+                    {/* Add Card Button */}
+                    <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2">
+                      <div className="flex items-center justify-center">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Add Order
+                      </div>
+                    </button>
                   </div>
                 </div>
-
-                {/* Column Content */}
-                <div className="flex-1 p-2">
-                  {col.items.length > 0 ? (
-                    <SortableContext
-                      items={col.items.map((i) => i.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {col.items.map((item) => (
-                        <SortableItem key={item.id} {...item}
-                        onClickItem={() => handleItemClick(item, colId)}
-                         />
-                      ))}
-                    </SortableContext>
-                  ) : (
-                    <DropZone columnId={colId} />
-                  )}
-                  
-                  {/* Add Card Button */}
-                  <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2">
-                    <div className="flex items-center justify-center">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      Add Order
-                    </div>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </DndContext>
       </div>
@@ -515,4 +475,4 @@ export default function OrderManagementPage() {
       )}
     </div>
   );
-} 
+}
