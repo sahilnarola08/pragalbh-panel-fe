@@ -12,6 +12,8 @@ import {
   useSensors,
   DragEndEvent,
   useDroppable,
+  DragOverlay,
+  DragStartEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -73,40 +75,93 @@ const withChecklists = (data: ColumnsData): ColumnsData => {
   return result;
 };
 
-// Drop Zone Component for empty columns
-function DropZone({ columnId }: { columnId: string }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `drop-zone-${columnId}`,
-  });
+// Simple Movement Indicator - Shows source to destination
+function MovementIndicator({ 
+  sourceColumn, 
+  destinationColumn, 
+  draggedItem 
+}: { 
+  sourceColumn: string; 
+  destinationColumn: string; 
+  draggedItem: OrderItem | null;
+}) {
+  if (!draggedItem || sourceColumn === destinationColumn) return null;
+
+  const sourceTitle = columnTitles[sourceColumn as keyof typeof columnTitles];
+  const destTitle = columnTitles[destinationColumn as keyof typeof columnTitles];
 
   return (
-    <div
-      ref={setNodeRef}
-      className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-colors ${
-        isOver
-          ? 'border-blue-400 bg-blue-50'
-          : 'border-gray-300 bg-gray-50'
-      }`}
-    >
-      <div className="flex items-center justify-center h-full text-gray-500">
-        <div className="text-center">
-          <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg border border-gray-700">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-blue-400 font-medium">{sourceTitle}</span>
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
-          <p className="text-sm">Drop items here</p>
+          <span className="text-green-400 font-medium">{destTitle}</span>
+        </div>
+        <div className="text-xs text-gray-300 mt-1">
+          Moving: <span className="font-semibold text-white">{draggedItem.orderId}</span>
         </div>
       </div>
     </div>
   );
 }
 
-//  Sortable Card Component - Enhanced with image, product name, and tooltip
+// Enhanced Drop Zone Component
+function DropZone({ columnId, isOver, draggedItem }: { 
+  columnId: string; 
+  isOver: boolean; 
+  draggedItem?: OrderItem | null;
+}) {
+  const { setNodeRef } = useDroppable({
+    id: `drop-zone-${columnId}`,
+  });
+
+  const columnTitle = columnTitles[columnId as keyof typeof columnTitles];
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-all duration-300 ${
+        isOver
+          ? 'border-green-500 bg-green-100 scale-105 shadow-lg'
+          : 'border-gray-300 bg-gray-50'
+      }`}
+    >
+      <div className="flex items-center justify-center h-full text-gray-500">
+        <div className="text-center">
+          {isOver && draggedItem ? (
+            <>
+              <svg className="w-8 h-8 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+              <p className="text-sm font-medium text-green-600">
+                Drop "{draggedItem.orderId}" here
+              </p>
+            </>
+          ) : (
+            <>
+              <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <p className="text-sm">Drop items here</p>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Enhanced Sortable Card Component
 function SortableItem({ _id, orderId, orderDate, product, productImage, onClickItem }: OrderItem & { onClickItem?: () => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: _id }); // Use _id as the dnd-kit id
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: _id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   // track mouse down/up to differentiate drag vs click
@@ -128,7 +183,9 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
       style={style}
       {...attributes}
       {...listeners}
-      className="bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative"
+      className={`bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative ${
+        isDragging ? 'shadow-2xl border-blue-400 bg-blue-50' : ''
+      }`}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
     >
@@ -153,6 +210,30 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
         {product}
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+      </div>
+    </div>
+  );
+}
+
+// Drag Overlay Component
+function DragOverlayContent({ item }: { item: OrderItem }) {
+  return (
+    <div className="bg-white border-2 border-blue-400 p-2 rounded-xl shadow-2xl transform rotate-2 scale-105">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-gray-800 mb-1 truncate">{item.orderId}</p>
+          <p className="text-xs text-gray-600 mb-1">{new Date(item.orderDate).toLocaleDateString()}</p>
+          <p className="text-xs text-gray-600 truncate">{item.product.slice(0, 20)}...</p>
+        </div>
+        <div className="flex-shrink-0">
+          <Image
+            src={item.productImage}
+            alt={item.orderId}
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-lg object-cover"
+          />
+        </div>
       </div>
     </div>
   );
@@ -267,6 +348,9 @@ export default function OrderManagementPage() {
   const [pendingDragItem, setPendingDragItem] = useState<OrderItem | null>(null);
   const [pendingDragSource, setPendingDragSource] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [draggedItem, setDraggedItem] = useState<OrderItem | null>(null);
+  const [sourceColumn, setSourceColumn] = useState<string | null>(null);
+  const [destinationColumn, setDestinationColumn] = useState<string | null>(null);
 
   // Enhanced function to fetch data from the API with skeleton loading
   const fetchKanbanData = async () => {
@@ -329,8 +413,22 @@ export default function OrderManagementPage() {
     }
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const [activeCol, item] = findColumn(event.active.id);
+    if (item) {
+      setDraggedItem(item);
+      setSourceColumn(activeCol);
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    
+    // Clear all drag states
+    setDraggedItem(null);
+    setSourceColumn(null);
+    setDestinationColumn(null);
+    
     if (!over) return;
 
     const [activeCol, draggedItem] = findColumn(active.id);
@@ -343,8 +441,10 @@ export default function OrderManagementPage() {
     if (overCol === "factory_process" && sourceColumns.includes(activeCol)) {
       const allChecked = (draggedItem.checklist ?? []).every(c => c.checked);
       if (allChecked) {
-        // allow move directly and call API
-        updateStatusApi(draggedItem._id, "factory_process");
+        // Optimistically update local state first
+        moveItemBetweenColumns(draggedItem, activeCol, overCol);
+        // Then call API
+        updateStatusApiOptimistic(draggedItem._id, "factory_process");
         return;
       } else {
         // open modal to complete checks, then move after save
@@ -368,15 +468,64 @@ export default function OrderManagementPage() {
         [activeCol]: { ...columns[activeCol], items: newItems },
       });
     } else {
-      // Handle moving between different columns
-      updateStatusApi(draggedItem._id, overCol);
+      // Handle moving between different columns with optimistic update
+      moveItemBetweenColumns(draggedItem, activeCol, overCol);
+      updateStatusApiOptimistic(draggedItem._id, overCol);
+    }
+  };
+
+  // Handle drag over to show destination
+  const handleDragOver = (event: any) => {
+    const { over } = event;
+    if (over) {
+      const [overCol] = findColumn(over.id);
+      if (overCol) {
+        setDestinationColumn(overCol);
+      }
+    }
+  };
+
+  // New function to handle optimistic updates between columns
+  const moveItemBetweenColumns = (item: OrderItem, fromColumn: string, toColumn: string) => {
+    setColumns(prevColumns => {
+      const newColumns = { ...prevColumns };
+      
+      // Remove item from source column
+      newColumns[fromColumn] = {
+        ...newColumns[fromColumn],
+        items: newColumns[fromColumn].items.filter(i => i._id !== item._id)
+      };
+      
+      // Add item to target column
+      newColumns[toColumn] = {
+        ...newColumns[toColumn],
+        items: [...newColumns[toColumn].items, item]
+      };
+      
+      return newColumns;
+    });
+  };
+
+  // Optimistic API update function
+  const updateStatusApiOptimistic = async (orderId: string, newStatus: string) => {
+    try {
+      await updateOrderStatus(orderId, { status: newStatus });
+      // Optionally refetch to ensure data consistency
+      // await fetchKanbanData();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      // On error, refetch data to revert optimistic update
+      await fetchKanbanData();
     }
   };
 
   const handleCheckListSave = (checkedItems: ChecklistItem[]) => {
     const allChecked = checkedItems.every(c => c.checked);
     if (pendingDragItem && pendingDragSource && allChecked) {
-      updateStatusApi(pendingDragItem._id, "factory_process");
+      // Optimistically move the item
+      moveItemBetweenColumns(pendingDragItem, pendingDragSource, "factory_process");
+      // Then call API
+      updateStatusApiOptimistic(pendingDragItem._id, "factory_process");
     }
 
     setColumns(prev => {
@@ -422,22 +571,42 @@ export default function OrderManagementPage() {
       <div className="mb-4">
         <h1 className="md:text-2xl text-xl font-semibold md:font-bold text-gray-800 text-center md:text-left">Order Management</h1>
       </div>
+      
+      {/* Movement Indicator - Shows at top */}
+      {draggedItem && sourceColumn && destinationColumn && (
+        <MovementIndicator 
+          sourceColumn={sourceColumn}
+          destinationColumn={destinationColumn}
+          draggedItem={draggedItem}
+        />
+      )}
+      
       {/* Kanban Board */}
       <div className="max-w-8xl mx-auto h-[calc(90vh-100px)]">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
         >
           {/* All columns in a single scrollable row */}
-          <div className="flex gap-4 overflow-x-auto pb-4 h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100  ">
+          <div className="flex gap-4 overflow-x-auto pb-4 h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {kanbanOrder.map((colId) => {
               const col = columns[colId];
-              if (!col) return null; // Ensure the column data exists before rendering
+              if (!col) return null;
+              
+              const isSourceColumn = sourceColumn === colId;
+              const isDestinationColumn = destinationColumn === colId;
+              
               return (
                 <div
                   key={colId}
-                  className={`bg-white w-72 sm:w-74  lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0`}
+                  className={`bg-white w-72 sm:w-74 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0 transition-all duration-300 ${
+                    isSourceColumn ? 'ring-4 ring-blue-400 ring-opacity-60 bg-blue-50' : ''
+                  } ${
+                    isDestinationColumn ? 'ring-4 ring-green-400 ring-opacity-60 bg-green-50' : ''
+                  }`}
                 >
                   {/* Column Header */}
                   <div className="p-4 border-b border-gray-200">
@@ -452,7 +621,7 @@ export default function OrderManagementPage() {
                   <div className="flex-1 p-2">
                     {col.items.length > 0 ? (
                       <SortableContext
-                        items={col.items.map((i) => i._id)} // Use _id here
+                        items={col.items.map((i) => i._id)}
                         strategy={verticalListSortingStrategy}
                       >
                         {col.items.map((item) => (
@@ -462,7 +631,11 @@ export default function OrderManagementPage() {
                         ))}
                       </SortableContext>
                     ) : (
-                      <DropZone columnId={colId} />
+                      <DropZone 
+                        columnId={colId} 
+                        isOver={isDestinationColumn} 
+                        draggedItem={draggedItem}
+                      />
                     )}
 
                     {/* Add Card Button */}
@@ -479,8 +652,14 @@ export default function OrderManagementPage() {
               );
             })}
           </div>
+          
+          {/* Drag Overlay */}
+          <DragOverlay>
+            {draggedItem ? <DragOverlayContent item={draggedItem} /> : null}
+          </DragOverlay>
         </DndContext>
       </div>
+      
       {activeItem && (
         <CheckListModel
           isOpen={isCheckListModalOpen}
