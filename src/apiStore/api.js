@@ -15,6 +15,9 @@ const API_ENDPOINTS = {
   getProductList: "/product/all",
   getSupplierList: "/supplier/all",
   getOrderList: "/order/all",
+  // New endpoints for order management
+  getKanbanBoard: "/order/kanban-board",
+  updateOrderStatus: "/order/update-status",
 };
 
 const apiClient = axios.create({
@@ -141,6 +144,29 @@ export const getOrderList = async (params) => {
   }
 };
 
+// Get Kanban Board Data
+export const getKanbanBoard = async () => {
+  try {
+    const response = await apiClient.get(API_ENDPOINTS.getKanbanBoard);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching kanban board data:", error);
+    throw error;
+  }
+};
+
+// Update Order Status
+// payload = { status: "factory_process" }
+export const updateOrderStatus = async (orderId, payload) => {
+  try {
+    const response = await apiClient.patch(`${API_ENDPOINTS.updateOrderStatus}/${orderId}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    throw error;
+  }
+};
+
 const api = {
   register,
   addSupplier,
@@ -150,6 +176,8 @@ const api = {
   getProductList,
   getSupplierList,
   getOrderList,
-  };
+  getKanbanBoard,
+  updateOrderStatus,
+};
 
 export default api;

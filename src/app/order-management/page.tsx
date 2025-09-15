@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import CheckListModel from "@/components/atoms/CheckListModel";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DndContext,
   closestCenter,
@@ -19,6 +20,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { getKanbanBoard, updateOrderStatus } from "@/apiStore/api";
 
 // Updated OrderItem to match the backend data structure
 interface OrderItem {
@@ -196,6 +198,67 @@ const kanbanOrder = [
   'done'
 ];
 
+// Enhanced Kanban Skeleton Component
+function KanbanSkeleton() {
+  return (
+    <div className="h-[calc(90vh-100px)] md:p-3 p-2 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header Skeleton */}
+      <div className="mb-4">
+        <Skeleton className="h-8 w-64 mx-auto md:mx-0" />
+      </div>
+      
+      {/* Kanban Board Skeleton */}
+      <div className="max-w-8xl mx-auto h-[calc(90vh-100px)]">
+        <div className="flex gap-4 overflow-x-auto pb-4 h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {kanbanOrder.map((colId) => (
+            <div
+              key={colId}
+              className={`bg-white w-72 sm:w-74 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${columnColors[colId as keyof typeof columnColors]} flex flex-col min-h-[600px] flex-shrink-0`}
+            >
+              {/* Column Header Skeleton */}
+              <div className="p-4 border-b border-gray-200">
+                <div className="flex items-center justify-center mb-2">
+                  <Skeleton className="h-5 w-32" />
+                </div>
+              </div>
+
+              {/* Column Content Skeleton */}
+              <div className="flex-1 p-2">
+                {/* Card Skeletons - Different amounts for different columns */}
+                {Array.from({ length: colId === 'over_due' ? 2 : colId === 'stock' ? 3 : colId === 'pending' ? 4 : 2 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <Skeleton className="h-3 w-20 mb-2" />
+                        <Skeleton className="h-3 w-16 mb-2" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <div className="flex-shrink-0">
+                        <Skeleton className="w-10 h-10 rounded-lg" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Add Card Button Skeleton */}
+                <div className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 mt-2">
+                  <div className="flex items-center justify-center">
+                    <Skeleton className="h-4 w-4 mr-2" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OrderManagementPage() {
   const [columns, setColumns] = useState<ColumnsData>({});
   const [isClient, setIsClient] = useState(false);
@@ -205,15 +268,11 @@ export default function OrderManagementPage() {
   const [pendingDragSource, setPendingDragSource] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Function to fetch data from the API
+  // Enhanced function to fetch data from the API with skeleton loading
   const fetchKanbanData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8001/order/kanban-board");
-      if (!response.ok) {
-        throw new Error("Failed to fetch Kanban data");
-      }
-      const data = await response.json();
+      const data = await getKanbanBoard();
       const apiData = data.data;
 
       // Map API data to frontend structure
@@ -262,16 +321,7 @@ export default function OrderManagementPage() {
 
   const updateStatusApi = async (orderId: string, newStatus: string) => {
     try {
-      const response = await fetch(`http://localhost:8001/order/update-status/${orderId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update order status');
-      }
+      await updateOrderStatus(orderId, { status: newStatus });
       // Re-fetch data to reflect the change
       await fetchKanbanData();
     } catch (error) {
@@ -362,39 +412,9 @@ export default function OrderManagementPage() {
     setIsCheckListModalOpen(true);
   };
 
+  // Updated loading condition to use the enhanced skeleton
   if (!isClient || isLoading) {
-    return (
-      <div className="h-100 p-3 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 w-full">
-        <div className="max-w-8xl mx-auto ">
-          <div className="flex gap-2 overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            {kanbanOrder.map((colId) => (
-              <div
-                key={colId}
-                className={`bg-white w-80 sm:w-80 md:w-80 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${columnColors[colId as keyof typeof columnColors]} flex flex-col min-h-[600px] scroll-hidden`}
-              >
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center justify-center mb-2">
-                    <h2 className="text-base font-semibold text-gray-700">
-                      {columnTitles[colId as keyof typeof columnTitles]}
-                    </h2>
-                  </div>
-                </div>
-                <div className="flex-1 p-2">
-                  <div className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500">
-                    <div className="flex items-center justify-center">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      Loading...
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <KanbanSkeleton />;
   }
   return (
     <div className="h-[calc(90vh-100px)] md:p-3 p-2 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 ">
