@@ -560,3 +560,174 @@ input[type="search"]::-webkit-search-cancel-button {
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
+
+/* CRITICAL: Force mobile drag to work */
+.touch-manipulation {
+  touch-action: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  -khtml-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-drag: none !important;
+  -moz-user-drag: none !important;
+  -o-user-drag: none !important;
+  user-drag: none !important;
+  pointer-events: auto !important;
+}
+
+.touch-pan-x {
+  touch-action: pan-x !important;
+}
+
+.select-none {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* CRITICAL: Force drag to work on mobile */
+@media (max-width: 1024px) {
+  /* Force all draggable elements to work */
+  [data-rbd-draggable-id],
+  [data-rbd-droppable-id],
+  .touch-manipulation {
+    touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Disable all text selection on mobile */
+  * {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  
+  /* Allow text selection only in input fields */
+  input, textarea {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+  }
+  
+  /* Force hardware acceleration */
+  .touch-manipulation {
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+    backface-visibility: hidden !important;
+    perspective: 1000px !important;
+  }
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  /* CRITICAL: Force mobile drag to work */
+  .touch-manipulation {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Better spacing for mobile */
+  .flex.gap-2 {
+    gap: 0.5rem;
+  }
+  
+  .flex.gap-4 {
+    gap: 1rem;
+  }
+  
+  /* CRITICAL: Force drag and drop to work on mobile */
+  [data-rbd-draggable-id] {
+    touch-action: none !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Better touch feedback */
+  .touch-manipulation:active {
+    transform: scale(0.98) !important;
+    transition: transform 0.1s ease !important;
+  }
+}
+
+/* Tablet-specific styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 7px;
+    width: 7px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 7px;
+  }
+  
+  /* CRITICAL: Force tablet drag to work */
+  .touch-manipulation {
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: none !important;
+    pointer-events: auto !important;
+  }
+}
+
+/* CRITICAL: Force hardware acceleration for better performance */
+.touch-manipulation {
+  transform: translateZ(0) !important;
+  will-change: transform !important;
+  backface-visibility: hidden !important;
+  perspective: 1000px !important;
+}
+
+/* CRITICAL: iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .touch-manipulation {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: none !important;
+  }
+}
+
+/* CRITICAL: Override any conflicting styles */
+@media (max-width: 1024px) {
+  .touch-manipulation,
+  [data-rbd-draggable-id],
+  [data-rbd-droppable-id] {
+    touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    pointer-events: auto !important;
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+  }
+}

@@ -8,6 +8,8 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
+  TouchSensor,
+  MouseSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -108,7 +110,7 @@ function MovementIndicator({
   );
 }
 
-// Enhanced Drop Zone Component
+// Enhanced Drop Zone Component with mobile support
 function DropZone({ columnId, isOver, draggedItem }: { 
   columnId: string; 
   isOver: boolean; 
@@ -123,7 +125,7 @@ function DropZone({ columnId, isOver, draggedItem }: {
   return (
     <div
       ref={setNodeRef}
-      className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-all duration-300 ${
+      className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-all duration-300 touch-manipulation ${
         isOver
           ? 'border-green-500 bg-green-100 scale-105 shadow-lg'
           : 'border-gray-300 bg-gray-50'
@@ -154,7 +156,7 @@ function DropZone({ columnId, isOver, draggedItem }: {
   );
 }
 
-// Enhanced Sortable Card Component
+// Enhanced Sortable Card Component with better mobile support
 function SortableItem({ _id, orderId, orderDate, product, productImage, onClickItem }: OrderItem & { onClickItem?: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: _id });
@@ -164,10 +166,27 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
     opacity: isDragging ? 0.3 : 1,
   };
 
+  // Enhanced touch handling for mobile - Remove preventDefault to allow drag
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Don't prevent default to allow drag to work
+    (e.currentTarget as HTMLElement).dataset.touchStart = String(Date.now());
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchStartTime = Number((e.currentTarget as HTMLElement).dataset.touchStart);
+    const touchEndTime = Date.now();
+    
+    // If touch duration is less than 150ms, treat as click
+    if (touchEndTime - touchStartTime < 150) {
+      onClickItem?.();
+    }
+  };
+
   // track mouse down/up to differentiate drag vs click
   const handleMouseDown = (e: React.MouseEvent) => {
     (e.currentTarget as HTMLElement).dataset.down = String(Date.now());
   };
+  
   const handleMouseUp = (e: React.MouseEvent) => {
     const downTime = Number((e.currentTarget as HTMLElement).dataset.down);
     const upTime = Date.now();
@@ -183,11 +202,13 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative ${
+      className={`bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative touch-manipulation ${
         isDragging ? 'shadow-2xl border-blue-400 bg-blue-50' : ''
       }`}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
@@ -206,8 +227,8 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
         </div>
       </div>
 
-      {/* Tooltip for full product name */}
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+      {/* Tooltip for full product name - Hidden on mobile */}
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 hidden md:block">
         {product}
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
       </div>
@@ -384,7 +405,25 @@ export default function OrderManagementPage() {
     fetchKanbanData();
   }, []);
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  // Enhanced sensors for mobile and desktop support - Fixed for mobile
+  const sensors = useSensors(
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 100, // Reduced delay for better mobile experience
+        tolerance: 5, // Reduced tolerance for easier activation
+      },
+    }),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Reduced distance for easier activation
+      },
+    }),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 5, // Reduced distance for easier activation
+      },
+    })
+  );
 
   const findColumn = (id: string | number): [string | null, OrderItem | null] => {
     const idStr = id.toString();
@@ -590,8 +629,8 @@ export default function OrderManagementPage() {
           onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}
         >
-          {/* Enhanced scrollable container with better scrollbar */}
-          <div className="flex gap-4 overflow-x-auto overflow-y-hidden pb-4 h-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
+          {/* Enhanced scrollable container with better mobile support */}
+          <div className="flex gap-2 md:gap-4 overflow-x-auto overflow-y-hidden pb-4 h-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-full scrollbar-track-rounded-full touch-pan-x">
             {kanbanOrder.map((colId) => {
               const col = columns[colId];
               if (!col) return null;
@@ -602,16 +641,16 @@ export default function OrderManagementPage() {
               return (
                 <div
                   key={colId}
-                  className={`bg-white w-72 sm:w-74 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0 transition-all duration-300 ${
+                  className={`bg-white w-64 sm:w-72 md:w-74 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0 transition-all duration-300 touch-manipulation ${
                     isSourceColumn ? 'ring-4 ring-blue-400 ring-opacity-60 bg-blue-50' : ''
                   } ${
                     isDestinationColumn ? 'ring-4 ring-green-400 ring-opacity-60 bg-green-50' : ''
                   }`}
                 >
                   {/* Column Header */}
-                  <div className="p-4 border-b border-gray-200">
+                  <div className="p-3 md:p-4 border-b border-gray-200">
                     <div className="flex items-center justify-center mb-2">
-                      <h2 className="text-base font-semibold text-gray-700">
+                      <h2 className="text-sm md:text-base font-semibold text-gray-700">
                         {col.title}
                       </h2>
                     </div>
@@ -639,12 +678,12 @@ export default function OrderManagementPage() {
                     )}
 
                     {/* Add Card Button */}
-                    <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2">
+                    <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2 touch-manipulation">
                       <div className="flex items-center justify-center">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        Add Order
+                        <span className="text-xs md:text-sm">Add Order</span>
                       </div>
                     </button>
                   </div>
@@ -653,7 +692,6 @@ export default function OrderManagementPage() {
             })}
           </div>
           
-         
           {/* Drag Overlay */}
           <DragOverlay>
             {draggedItem ? <DragOverlayContent item={draggedItem} /> : null}
