@@ -25,6 +25,9 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { getKanbanBoard, updateOrderStatus } from "@/apiStore/api";
+import { useRouter } from "next/navigation";
+
+
 
 // Updated OrderItem to match the backend data structure
 interface OrderItem {
@@ -362,6 +365,7 @@ function KanbanSkeleton() {
 }
 
 export default function OrderManagementPage() {
+  const router = useRouter();
   const [columns, setColumns] = useState<ColumnsData>({});
   const [isClient, setIsClient] = useState(false);
   const [isCheckListModalOpen, setIsCheckListModalOpen] = useState(false);
@@ -600,6 +604,10 @@ export default function OrderManagementPage() {
     setIsCheckListModalOpen(true);
   };
 
+  const handleAddOrder = () => {
+    router.push('/order/add-order');
+  };
+
   // Updated loading condition to use the enhanced skeleton
   if (!isClient || isLoading) {
     return <KanbanSkeleton />;
@@ -678,7 +686,7 @@ export default function OrderManagementPage() {
                     )}
 
                     {/* Add Card Button */}
-                    <button className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2 touch-manipulation">
+                    <button  onClick={handleAddOrder} className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2 touch-manipulation">
                       <div className="flex items-center justify-center">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
