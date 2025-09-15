@@ -137,7 +137,7 @@ function DropZone({ columnId, isOver, draggedItem }: {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
               <p className="text-sm font-medium text-green-600">
-                Drop "{draggedItem.orderId}" here
+                Drop &quot; {draggedItem.orderId} &quot; here
               </p>
             </>
           ) : (
@@ -582,7 +582,7 @@ export default function OrderManagementPage() {
       )}
       
       {/* Kanban Board */}
-      <div className="max-w-8xl mx-auto h-[calc(90vh-100px)]">
+      <div className="max-w-8xl mx-auto h-[calc(90vh-100px)] relative">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -590,8 +590,8 @@ export default function OrderManagementPage() {
           onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}
         >
-          {/* All columns in a single scrollable row */}
-          <div className="flex gap-4 overflow-x-auto pb-4 h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {/* Enhanced scrollable container with better scrollbar */}
+          <div className="flex gap-4 overflow-x-auto overflow-y-hidden pb-4 h-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
             {kanbanOrder.map((colId) => {
               const col = columns[colId];
               if (!col) return null;
@@ -618,7 +618,7 @@ export default function OrderManagementPage() {
                   </div>
 
                   {/* Column Content */}
-                  <div className="flex-1 p-2">
+                  <div className="flex-1 p-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                     {col.items.length > 0 ? (
                       <SortableContext
                         items={col.items.map((i) => i._id)}
@@ -653,6 +653,7 @@ export default function OrderManagementPage() {
             })}
           </div>
           
+         
           {/* Drag Overlay */}
           <DragOverlay>
             {draggedItem ? <DragOverlayContent item={draggedItem} /> : null}

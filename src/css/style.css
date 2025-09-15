@@ -496,3 +496,67 @@ input[type="search"]::-webkit-search-cancel-button {
 .custom-gradient-1 {
   background-image: linear-gradient(145deg, #eef 0%, #fff8fc 100%);
 }
+
+/* Enhanced scrollbar styles for kanban board */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-gray-400 {
+  scrollbar-color: #9ca3af #f3f4f6;
+}
+
+.scrollbar-thumb-gray-500 {
+  scrollbar-color: #6b7280 #f3f4f6;
+}
+
+.scrollbar-track-gray-200 {
+  scrollbar-color: #9ca3af #e5e7eb;
+}
+
+.scrollbar-thumb-rounded-full {
+  scrollbar-width: thin;
+}
+
+.scrollbar-track-rounded-full {
+  scrollbar-width: thin;
+}
+
+/* Webkit scrollbar styles for better browser support */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Horizontal scrollbar specific */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
