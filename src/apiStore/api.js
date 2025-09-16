@@ -18,6 +18,7 @@ const API_ENDPOINTS = {
   // New endpoints for order management
   getKanbanBoard: "/order/kanban-board",
   updateOrderStatus: "/order/update-status",
+  updateOrderChecklist: "/order/update-checklist",
 };
 
 const apiClient = axios.create({
@@ -158,14 +159,27 @@ export const getKanbanBoard = async () => {
 // Update Order Status
 // payload = { status: "factory_process" }
 export const updateOrderStatus = async (orderId, payload) => {
+  const body = { orderId, ...payload };
   try {
-    const response = await apiClient.patch(`${API_ENDPOINTS.updateOrderStatus}/${orderId}`, payload);
+    const response = await apiClient.patch(API_ENDPOINTS.updateOrderStatus, body);
     return response.data;
   } catch (error) {
     console.error("Error updating order status:", error);
     throw error;
   }
 };
+
+// Update checklist for an order
+export const updateOrderChecklist = async (orderId, checklist) => {
+  try {
+    const res = await apiClient.patch(API_ENDPOINTS.updateOrderChecklist, { orderId, checklist });
+    return res.data;
+  } catch (err) {
+    console.error("Error updating checklist:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
 
 const api = {
   register,
@@ -178,6 +192,7 @@ const api = {
   getOrderList,
   getKanbanBoard,
   updateOrderStatus,
+  updateOrderChecklist,
 };
 
 export default api;
