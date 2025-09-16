@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import CheckListModel from "@/components/atoms/CheckListModel";
+import TrackingModal from "@/components/atoms/TrackingModal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "react-toastify";
 import {
   DndContext,
   closestCenter,
@@ -376,6 +378,8 @@ export default function OrderManagementPage() {
   const [draggedItem, setDraggedItem] = useState<OrderItem | null>(null);
   const [sourceColumn, setSourceColumn] = useState<string | null>(null);
   const [destinationColumn, setDestinationColumn] = useState<string | null>(null);
+  const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
+  const [trackingItem, setTrackingItem] = useState<OrderItem | null>(null);
 
   // Enhanced function to fetch data from the API with skeleton loading
   const fetchKanbanData = async () => {
@@ -499,6 +503,13 @@ export default function OrderManagementPage() {
       }
     }
 
+    // Handle tracking modal for updated_tracking_id column
+    if (overCol === "updated_tracking_id") {
+      setTrackingItem(draggedItem);
+      setIsTrackingModalOpen(true);
+      return;
+    }
+
     // Handle reordering within the same column
     if (activeCol === overCol) {
       const items = [...columns[activeCol].items];
@@ -606,6 +617,26 @@ export default function OrderManagementPage() {
 
   const handleAddOrder = () => {
     router.push('/order/add-order');
+  };
+
+  const handleTrackingSubmit = async (data: { trackingId: string; courierCompany: string }) => {
+    if (!trackingItem) return;
+    try {
+      await updateOrderStatus(trackingItem._id, {
+        status: "updated_tracking_id",
+        trackingId: data.trackingId,
+        courierCompany: data.courierCompany,
+      });
+      toast.success("Tracking ID added successfully");
+      // Optimistically move the item
+      moveItemBetweenColumns(trackingItem, findColumn(trackingItem._id)[0]!, "updated_tracking_id");
+      setIsTrackingModalOpen(false);
+      setTrackingItem(null);
+      await fetchKanbanData();
+    } catch (error) {
+      toast.error("Failed to add tracking");
+      console.error("Error adding tracking:", error);
+    }
   };
 
   // Updated loading condition to use the enhanced skeleton
@@ -719,6 +750,15 @@ export default function OrderManagementPage() {
           showRah={true}
         />
       )}
+
+      {trackingItem && (
+        <TrackingModal
+          open={isTrackingModalOpen}
+          onClose={() => setIsTrackingModalOpen(false)}
+          onSubmit={handleTrackingSubmit}
+        />
+      )}
+      
     </div>
   );
 }
