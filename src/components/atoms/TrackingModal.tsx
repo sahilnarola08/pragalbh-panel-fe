@@ -11,6 +11,7 @@ interface TrackingModalProps {
   initialTrackingId?: string;
   initialCourierCompany?: string;
   loading?: boolean;
+  trackingItem?: any;
 }
 
 export default function TrackingModal({
@@ -20,9 +21,11 @@ export default function TrackingModal({
   initialTrackingId = "",
   initialCourierCompany = "",
   loading = false,
+  trackingItem,
 }: TrackingModalProps) {
   const [trackingId, setTrackingId] = useState(initialTrackingId);
   const [courierCompany, setCourierCompany] = useState(initialCourierCompany);
+
 
   const handleSave = () => {
     if (!trackingId || !courierCompany) return;
@@ -31,7 +34,7 @@ export default function TrackingModal({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Enter Tracking Details</DialogTitle>
+      <DialogTitle>Enter Tracking Details for {trackingItem?.orderId}</DialogTitle>
       <DialogContent className="flex flex-col gap-4 pt-4">
         <input
           type="text"

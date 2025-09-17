@@ -26,7 +26,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { getKanbanBoard, updateOrderChecklist, updateOrderStatus } from "@/apiStore/api";
+import { getKanbanBoard, updateOrderChecklist, updateOrderStatus, updateTrackingInfo } from "@/apiStore/api";
 import { useRouter } from "next/navigation";
 
 
@@ -39,6 +39,8 @@ interface OrderItem {
   product: string; // Using product from the backend
   productImage: string;
   checklist?: ChecklistItem[];
+  trackingId?: string;
+  courierCompany?: string;
 }
 
 interface ChecklistItem {
@@ -56,6 +58,11 @@ interface ColumnData {
 
 interface ColumnsData {
   [key: string]: ColumnData;
+}
+
+interface TrackingItem {
+  trackingId: string;
+  courierCompany: string;
 }
 
 
@@ -83,13 +90,13 @@ const withChecklists = (data: ColumnsData): ColumnsData => {
 };
 
 // Simple Movement Indicator - Shows source to destination
-function MovementIndicator({ 
-  sourceColumn, 
-  destinationColumn, 
-  draggedItem 
-}: { 
-  sourceColumn: string; 
-  destinationColumn: string; 
+function MovementIndicator({
+  sourceColumn,
+  destinationColumn,
+  draggedItem
+}: {
+  sourceColumn: string;
+  destinationColumn: string;
   draggedItem: OrderItem | null;
 }) {
   if (!draggedItem || sourceColumn === destinationColumn) return null;
@@ -116,9 +123,9 @@ function MovementIndicator({
 }
 
 // Enhanced Drop Zone Component with mobile support
-function DropZone({ columnId, isOver, draggedItem }: { 
-  columnId: string; 
-  isOver: boolean; 
+function DropZone({ columnId, isOver, draggedItem }: {
+  columnId: string;
+  isOver: boolean;
   draggedItem?: OrderItem | null;
 }) {
   const { setNodeRef } = useDroppable({
@@ -130,11 +137,10 @@ function DropZone({ columnId, isOver, draggedItem }: {
   return (
     <div
       ref={setNodeRef}
-      className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-all duration-300 touch-manipulation ${
-        isOver
+      className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-all duration-300 touch-manipulation ${isOver
           ? 'border-green-500 bg-green-100 scale-105 shadow-lg'
           : 'border-gray-300 bg-gray-50'
-      }`}
+        }`}
     >
       <div className="flex items-center justify-center h-full text-gray-500">
         <div className="text-center">
@@ -180,7 +186,7 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
   const handleTouchEnd = (e: React.TouchEvent) => {
     const touchStartTime = Number((e.currentTarget as HTMLElement).dataset.touchStart);
     const touchEndTime = Date.now();
-    
+
     // If touch duration is less than 150ms, treat as click
     if (touchEndTime - touchStartTime < 150) {
       onClickItem?.();
@@ -191,7 +197,7 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
   const handleMouseDown = (e: React.MouseEvent) => {
     (e.currentTarget as HTMLElement).dataset.down = String(Date.now());
   };
-  
+
   const handleMouseUp = (e: React.MouseEvent) => {
     const downTime = Number((e.currentTarget as HTMLElement).dataset.down);
     const upTime = Date.now();
@@ -207,9 +213,8 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative touch-manipulation ${
-        isDragging ? 'shadow-2xl border-blue-400 bg-blue-50' : ''
-      }`}
+      className={`bg-white border border-gray-200 p-2 rounded-xl shadow-sm mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 hover:border-blue-300 group relative touch-manipulation ${isDragging ? 'shadow-2xl border-blue-400 bg-blue-50' : ''
+        }`}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onTouchStart={handleTouchStart}
@@ -313,7 +318,7 @@ function KanbanSkeleton() {
       <div className="mb-4">
         <Skeleton className="h-8 w-64 mx-auto md:mx-0" />
       </div>
-      
+
       {/* Kanban Board Skeleton */}
       <div className="max-w-8xl mx-auto h-[calc(90vh-100px)]">
         <div className="flex gap-4 overflow-x-auto pb-4 h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -349,7 +354,7 @@ function KanbanSkeleton() {
                     </div>
                   </div>
                 ))}
-                
+
                 {/* Add Card Button Skeleton */}
                 <div className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 mt-2">
                   <div className="flex items-center justify-center">
@@ -462,15 +467,13 @@ export default function OrderManagementPage() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
-  
+
     const [activeCol, draggedItem] = findColumn(active.id);
     const [overCol] = findColumn(over.id);
     if (!activeCol || !overCol || !draggedItem) return;
-  
-        // Always allow movement between over_due, stock, pending, factory_process
-    const freeColumns = ["over_due", "stock", "pending", "factory_process"];
+
+
     const protectedColumns = ["video_confirmation", "dispatch", "updated_tracking_id"];
-  
     if (protectedColumns.includes(overCol)) {
       const allChecked = (draggedItem.checklist ?? []).every(c => c.checked);
       if (!allChecked) {
@@ -481,7 +484,21 @@ export default function OrderManagementPage() {
         return;
       }
     }
-  
+
+    if (
+      activeCol === "updated_tracking_id" &&
+      ["delivery_confirmation", "review", "done"].includes(overCol)
+    ) {
+      if (!draggedItem.trackingId || !draggedItem.courierCompany) {
+        toast.error("Please fill Tracking ID & Courier Company before moving!");
+        setTrackingItem(draggedItem);
+        setIsTrackingModalOpen(true);
+        return;
+      }
+    }
+
+
+
     moveItemBetweenColumns(draggedItem, activeCol, overCol);
     updateStatusApiOptimistic(draggedItem._id, overCol);
 
@@ -492,9 +509,9 @@ export default function OrderManagementPage() {
       setDestinationColumn(null);
     }, 400);
   };
-  
-  
- 
+
+
+
   const handleDragOver = (event: any) => {
     const { over } = event;
     if (over) {
@@ -509,19 +526,19 @@ export default function OrderManagementPage() {
   const moveItemBetweenColumns = (item: OrderItem, fromColumn: string, toColumn: string) => {
     setColumns(prevColumns => {
       const newColumns = { ...prevColumns };
-      
+
       // Remove item from source column
       newColumns[fromColumn] = {
         ...newColumns[fromColumn],
         items: newColumns[fromColumn].items.filter(i => i._id !== item._id)
       };
-      
+
       // Add item to target column
       newColumns[toColumn] = {
         ...newColumns[toColumn],
         items: [...newColumns[toColumn].items, item]
       };
-      
+
       return newColumns;
     });
   };
@@ -533,14 +550,14 @@ export default function OrderManagementPage() {
       await fetchKanbanData();
     } catch (error) {
       console.error("Error updating status:", error);
-     
+
       await fetchKanbanData();
     }
   };
 
   const handleCheckListSave = async (checkedItems: ChecklistItem[]) => {
     if (!activeItem) return;
-  
+
     try {
       await updateOrderChecklist(activeItem._id, checkedItems);
       setColumns(prev => {
@@ -555,17 +572,17 @@ export default function OrderManagementPage() {
         }
         return updated;
       });
-  
+
       const allChecked = checkedItems.every(c => c.checked);
-  
+
       if (pendingDragItem && pendingDragSource && allChecked) {
-       
+
         const targetColumn = destinationColumn || "video_confirmation";
-  
+
         moveItemBetweenColumns(pendingDragItem, pendingDragSource, targetColumn);
         updateStatusApiOptimistic(pendingDragItem._id, targetColumn);
       }
-  
+
       toast.success("Checklist updated successfully!");
     } catch (error) {
       console.error("Error saving checklist:", error);
@@ -577,20 +594,29 @@ export default function OrderManagementPage() {
       setIsCheckListModalOpen(false);
     }
   };
-  
 
- const handleCheckListCancel = () => {
+
+  const handleCheckListCancel = () => {
     setPendingDragItem(null);
     setPendingDragSource(null);
     setActiveItem(null);
     setIsCheckListModalOpen(false);
   };
 
-const handleItemClick = (item: OrderItem, colId: string) => {
-  if (colId !== "factory_process") return; 
-  setActiveItem(item);
-  setIsCheckListModalOpen(true);
-};
+  const handleItemClick = (item: OrderItem, colId: string) => {
+    if (colId === "factory_process") {
+      setActiveItem(item);
+      setIsCheckListModalOpen(true);
+      return;
+    }
+
+    if (colId === "updated_tracking_id") {
+      setTrackingItem(item);
+      setIsTrackingModalOpen(true);
+      return;
+    }
+    return;
+  };
 
   const handleAddOrder = () => {
     router.push('/order/add-order');
@@ -599,14 +625,16 @@ const handleItemClick = (item: OrderItem, colId: string) => {
   const handleTrackingSubmit = async (data: { trackingId: string; courierCompany: string }) => {
     if (!trackingItem) return;
     try {
-      await updateOrderStatus(trackingItem._id, {
-        status: "updated_tracking_id",
+      const payload = {
+        orderId: trackingItem._id,
         trackingId: data.trackingId,
         courierCompany: data.courierCompany,
-      });
-      toast.success("Tracking ID added successfully");
-      // Optimistically move the item
+      };
+      await updateTrackingInfo(payload);
+
+      toast.success("Tracking details added & order moved!");
       moveItemBetweenColumns(trackingItem, findColumn(trackingItem._id)[0]!, "updated_tracking_id");
+
       setIsTrackingModalOpen(false);
       setTrackingItem(null);
       await fetchKanbanData();
@@ -626,16 +654,16 @@ const handleItemClick = (item: OrderItem, colId: string) => {
       <div className="mb-4">
         <h1 className="md:text-2xl text-xl font-semibold md:font-bold text-gray-800 text-center md:text-left">Order Management</h1>
       </div>
-      
+
       {/* Movement Indicator - Shows at top */}
       {draggedItem && sourceColumn && destinationColumn && (
-        <MovementIndicator 
+        <MovementIndicator
           sourceColumn={sourceColumn}
           destinationColumn={destinationColumn}
           draggedItem={draggedItem}
         />
       )}
-      
+
       {/* Kanban Board */}
       <div className="max-w-8xl mx-auto h-[calc(90vh-100px)] relative">
         <DndContext
@@ -650,18 +678,16 @@ const handleItemClick = (item: OrderItem, colId: string) => {
             {kanbanOrder.map((colId) => {
               const col = columns[colId];
               if (!col) return null;
-              
+
               const isSourceColumn = sourceColumn === colId;
               const isDestinationColumn = destinationColumn === colId;
-              
+
               return (
                 <div
                   key={colId}
-                  className={`bg-white w-64 sm:w-72 md:w-74 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0 transition-all duration-300 touch-manipulation ${
-                    isSourceColumn ? 'ring-4 ring-blue-400 ring-opacity-60 bg-blue-50' : ''
-                  } ${
-                    isDestinationColumn ? 'ring-4 ring-green-400 ring-opacity-60 bg-green-50' : ''
-                  }`}
+                  className={`bg-white w-64 sm:w-72 md:w-74 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0 transition-all duration-300 touch-manipulation ${isSourceColumn ? 'ring-4 ring-blue-400 ring-opacity-60 bg-blue-50' : ''
+                    } ${isDestinationColumn ? 'ring-4 ring-green-400 ring-opacity-60 bg-green-50' : ''
+                    }`}
                 >
                   {/* Column Header */}
                   <div className="p-3 md:p-4 border-b border-gray-200">
@@ -681,20 +707,20 @@ const handleItemClick = (item: OrderItem, colId: string) => {
                       >
                         {col.items.map((item) => (
                           <SortableItem key={item._id} {...item}
-                          onClickItem={() => handleItemClick(item, colId)}
-                           />
+                            onClickItem={() => handleItemClick(item, colId)}
+                          />
                         ))}
                       </SortableContext>
                     ) : (
-                      <DropZone 
-                        columnId={colId} 
-                        isOver={isDestinationColumn} 
+                      <DropZone
+                        columnId={colId}
+                        isOver={isDestinationColumn}
                         draggedItem={draggedItem}
                       />
                     )}
 
                     {/* Add Card Button */}
-                    <button  onClick={handleAddOrder} className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2 touch-manipulation">
+                    <button onClick={handleAddOrder} className="w-full border-2 border-dashed border-gray-300 rounded-xl p-2 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors hover:bg-blue-50 mt-2 touch-manipulation">
                       <div className="flex items-center justify-center">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -707,14 +733,14 @@ const handleItemClick = (item: OrderItem, colId: string) => {
               );
             })}
           </div>
-          
+
           {/* Drag Overlay */}
           <DragOverlay>
             {draggedItem ? <DragOverlayContent item={draggedItem} /> : null}
           </DragOverlay>
         </DndContext>
       </div>
-      
+
       {activeItem && (
         <CheckListModel
           isOpen={isCheckListModalOpen}
@@ -733,9 +759,10 @@ const handleItemClick = (item: OrderItem, colId: string) => {
           open={isTrackingModalOpen}
           onClose={() => setIsTrackingModalOpen(false)}
           onSubmit={handleTrackingSubmit}
+          trackingItem={trackingItem}
         />
       )}
-      
+
     </div>
   );
 }

@@ -19,6 +19,7 @@ const API_ENDPOINTS = {
   getKanbanBoard: "/order/kanban-board",
   updateOrderStatus: "/order/update-status",
   updateOrderChecklist: "/order/update-checklist",
+  updateTrackingInfo: "/order/update-tracking-info",
 };
 
 const apiClient = axios.create({
@@ -180,6 +181,17 @@ export const updateOrderChecklist = async (orderId, checklist) => {
   }
 };
 
+// Update tracking details
+export const updateTrackingInfo = async (payload) => {
+  try {
+    const response = await apiClient.patch(API_ENDPOINTS.updateTrackingInfo, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating tracking info:", error);
+    throw error;
+  }
+};
+
 
 const api = {
   register,
@@ -193,6 +205,7 @@ const api = {
   getKanbanBoard,
   updateOrderStatus,
   updateOrderChecklist,
+  updateTrackingInfo,
 };
 
 export default api;
