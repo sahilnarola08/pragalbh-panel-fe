@@ -457,70 +457,7 @@ export default function OrderManagementPage() {
       setSourceColumn(activeCol);
     }
   };
-  //   const { active, over } = event;
-    
-  //   // Clear all drag states
-  //   setDraggedItem(null);
-  //   setSourceColumn(null);
-  //   setDestinationColumn(null);
-    
-  //   if (!over) return;
 
-  //   const [activeCol, draggedItem] = findColumn(active.id);
-  //   const [overCol] = findColumn(over.id);
-  //   if (!activeCol || !overCol || !draggedItem) return;
-
-  //   const sourceColumns = ["over_due", "stock", "pending"];
-
-  //   // Gate only when moving into Factory Process from the 3 source columns
-  //   if (overCol === "factory_process" && sourceColumns.includes(activeCol)) {
-  //     const allChecked = (draggedItem.checklist ?? []).every(c => c.checked);
-  //     if (allChecked) {
-  //       // Optimistically update local state first
-  //       moveItemBetweenColumns(draggedItem, activeCol, overCol);
-  //       // Then call API
-  //       updateStatusApiOptimistic(draggedItem._id, "factory_process");
-  //       return;
-  //     } else {
-  //       // open modal to complete checks, then move after save
-  //       setPendingDragItem(draggedItem);
-  //       setPendingDragSource(activeCol);
-  //       setActiveItem(draggedItem);
-  //       setIsCheckListModalOpen(true);
-  //       return; // stop normal DnD flow
-  //     }
-  //   }
-
-  //   // Handle tracking modal for updated_tracking_id column
-  //   if (overCol === "updated_tracking_id") {
-  //     setTrackingItem(draggedItem);
-  //     setIsTrackingModalOpen(true);
-  //     return;
-  //   }
-
-  //   // Handle reordering within the same column
-  //   if (activeCol === overCol) {
-  //     const items = [...columns[activeCol].items];
-  //     const oldIndex = items.findIndex((i) => i._id === active.id);
-  //     const newIndex = items.findIndex((i) => i._id === over.id);
-  //     const newItems = arrayMove(items, oldIndex, newIndex);
-
-  //     setColumns({
-  //       ...columns,
-  //       [activeCol]: { ...columns[activeCol], items: newItems },
-  //     });
-  //   } else {
-  //     // Handle moving between different columns with optimistic update
-  //     moveItemBetweenColumns(draggedItem, activeCol, overCol);
-  //     updateStatusApiOptimistic(draggedItem._id, overCol);
-  //   }
-  // };
-
-
-
-
-
-  // Handle drag over to show destination
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -530,7 +467,7 @@ export default function OrderManagementPage() {
     const [overCol] = findColumn(over.id);
     if (!activeCol || !overCol || !draggedItem) return;
   
-    // ✅ Always allow movement between over_due, stock, pending, factory_process
+        // Always allow movement between over_due, stock, pending, factory_process
     const freeColumns = ["over_due", "stock", "pending", "factory_process"];
     const protectedColumns = ["video_confirmation", "dispatch", "updated_tracking_id"];
   
@@ -600,47 +537,6 @@ export default function OrderManagementPage() {
       await fetchKanbanData();
     }
   };
-
-
-  // const handleCheckListSave = async (checkedItems: ChecklistItem[]) => {
-  //   if (!activeItem) return;
-  
-  //   try {
-  //     await updateOrderChecklist(activeItem._id, checkedItems);
-  
-  //     // Update local state checklist
-  //     setColumns(prev => {
-  //       const updated: ColumnsData = { ...prev };
-  //       for (const key in updated) {
-  //         updated[key] = {
-  //           ...updated[key],
-  //           items: updated[key].items.map(i =>
-  //             i._id === activeItem._id ? { ...i, checklist: checkedItems } : i
-  //           ),
-  //         };
-  //       }
-  //       return updated;
-  //     });
-  
-  //     // ✅ If modal was triggered by drag to video_confirmation, re-check and move
-  //     const allChecked = checkedItems.every(c => c.checked);
-  //     if (pendingDragItem && pendingDragSource && allChecked) {
-  //       moveItemBetweenColumns(pendingDragItem, pendingDragSource, "video_confirmation");
-  //       updateStatusApiOptimistic(pendingDragItem._id, "video_confirmation");
-  //     }
-  
-  //     toast.success("Checklist updated!");
-  //   } catch (error) {
-  //     console.error("Error saving checklist:", error);
-  //     toast.error("Failed to save checklist");
-  //   } finally {
-  //     setPendingDragItem(null);
-  //     setPendingDragSource(null);
-  //     setActiveItem(null);
-  //     setIsCheckListModalOpen(false);
-  //   }
-  // };
-  
 
   const handleCheckListSave = async (checkedItems: ChecklistItem[]) => {
     if (!activeItem) return;
