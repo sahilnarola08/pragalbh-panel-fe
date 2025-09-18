@@ -653,16 +653,27 @@ export default function OrderManagementPage() {
         trackingId: data.trackingId,
         courierCompany: data.courierCompany,
       };
-      await updateTrackingInfo(payload);
-
-      toast.success("Tracking details added & order moved!");
-      moveItemBetweenColumns(trackingItem, findColumn(trackingItem._id)[0]!, "updated_tracking_id");
-
-      setIsTrackingModalOpen(false);
-      setTrackingItem(null);
-      await fetchKanbanData();
+      const response = await updateTrackingInfo(payload);
+      
+      if (response?.status === 200) {
+        toast.success(response.message || "Tracking details added & order moved!");
+        moveItemBetweenColumns(
+          trackingItem,
+          findColumn(trackingItem._id)[0]!,
+          "updated_tracking_id"
+        );
+        setIsTrackingModalOpen(false);
+        setTrackingItem(null);
+        await fetchKanbanData();
+      } else if (response?.status === 400) {
+        toast.error(response.message || "Validation failed. Please check inputs.");
+      } else if (response?.status === 404) {
+        toast.error("Order not found. Please refresh the page.");
+      } else {
+        toast.error("Failed to add tracking. Please try again.");
+      }
     } catch (error) {
-      toast.error("Failed to add tracking");
+      toast.error("Failed to add tracking. Please try again.");
       console.error("Error adding tracking:", error);
     }
   };
