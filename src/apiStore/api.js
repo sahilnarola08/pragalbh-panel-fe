@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API;
+const BASE_URL = process.env.NEXT_API;
 if (!BASE_URL)
   throw new Error(
     "API base URL is not defined. Please check your environment variables.",
@@ -28,23 +28,6 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-// User Registration
-// paylod = {
-//   "firstName": "John",
-//   "lastName": "Doe",
-//   "address": "123 Main Street, City, State 12345",
-//   "contactNumber": "1234567890",
-//   "email": "john.doe@example.com",
-//   "clientType": "individual",
-//   "company": "ABC Company",
-//   "platforms": [
-//     { "platformName": "Instagram", "platformUsername": "jay_bhuvasaya" },
-//     { "platformName": "YouTube", "platformUsername": "johnYT" },
-//     { "platformName": "Twitter", "platformUsername": "john123" }
-//   ]
-// }
-
 
 
 export const register = async (Paylod) => {
