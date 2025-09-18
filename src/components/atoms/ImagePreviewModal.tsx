@@ -1,5 +1,6 @@
 import React from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 
 interface ImagePreviewModalProps {
   isOpen: boolean;
@@ -38,12 +39,12 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className=" md:text-lg  text-sm font-semibold ">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-gray-300 transition-colors"
+            className="rounded-lg p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -53,21 +54,15 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
 
         {/* Image Container */}
         <div className="p-4 flex items-center justify-center">
-          <img
+          <Image
             src={imageUrl}
             alt={altText}
+            width={800}
+            height={600}
             className="max-w-full max-h-[60vh] object-contain rounded-lg"
+            style={{ width: 'auto', height: 'auto' }}
+            unoptimized={true}
           />
-        </div>
-
-        {/* Modal Footer */}
-        <div className="flex items-center justify-center p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-          >
-            Close Preview
-          </button>
         </div>
       </div>
     </div>,
