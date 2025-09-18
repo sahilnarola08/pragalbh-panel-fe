@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = process.env.NEXT_API;
+const BASE_URL = process.env.NEXT_PUBLIC_API;
 if (!BASE_URL)
   throw new Error(
     "API base URL is not defined. Please check your environment variables.",
@@ -49,19 +49,7 @@ export const addSupplier = async (Paylod) => {
     throw error;
   }
 };
-// add order
-// paylod = {{
-//   "clientName": "John Doe",
-//   "address": "123 Street",
-//   "product": "Laptop",
-//   "orderDate": "2025-09-05",
-//   "dispatchDate": "2025-09-10",
-//   "purchasePrice": 500,
-//   "sellingPrice": 650,
-//   "supplier": "Supplier Ltd",
-//   "orderPlatform": "Amazon",
-//   "otherDetails": "Urgent order"
-// }
+
 export const addOrder = async (Paylod) => {
   try {
     const response = await apiClient.post(API_ENDPOINTS.addOrder, Paylod);
@@ -72,11 +60,7 @@ export const addOrder = async (Paylod) => {
   }
 };
 
-// add product
-// paylod = {
-//   "category": "Electronics",
-//   "productName": "Laptop"
-// }
+
 export const addProduct = async (Paylod) => {
   try {
     const response = await apiClient.post(API_ENDPOINTS.addProduct, Paylod);
@@ -141,7 +125,6 @@ export const getKanbanBoard = async () => {
 };
 
 // Update Order Status
-// payload = { status: "factory_process" }
 export const updateOrderStatus = async (orderId, payload) => {
   const body = { orderId, ...payload };
   try {
