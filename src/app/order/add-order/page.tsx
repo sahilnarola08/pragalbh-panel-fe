@@ -282,13 +282,20 @@ export default function OrderPage() {
         otherDetails: data.otherDetails || "", // Handle optional other details
       };
 
-      await addOrder(payload);
-      toast.success("Order created successfully!");
+      const response = await addOrder(payload);
 
-      // Reset form and images
+       if (response?.status === 200) {
+      toast.success(response.message || "Order created successfully!");
       reset();
       setUploadedImages([]);
       setIsOtherDetailsOpen(false);
+    } 
+    else if (response?.status === 400) {
+      toast.error(response.message || "Validation failed. Please check client/product.");
+    } 
+    else {
+      toast.error("Unexpected error while creating order. Please try again.");
+    }
     } catch (error) {
       console.error("Error creating order:", error);
       toast.error("Error creating order. Please try again.");
