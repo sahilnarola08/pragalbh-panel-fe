@@ -5,7 +5,8 @@ import Image from "next/image";
 import CheckListModel from "@/components/atoms/CheckListModel";
 import TrackingModal from "@/components/atoms/TrackingModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   DndContext,
   closestCenter,
@@ -99,7 +100,7 @@ function MovementIndicator({
   destinationColumn: string;
   draggedItem: OrderItem | null;
 }) {
-  if (!draggedItem || sourceColumn === destinationColumn) return null;
+  if (!draggedItem || !sourceColumn || !destinationColumn) return null;
 
   const sourceTitle = columnTitles[sourceColumn as keyof typeof columnTitles];
   const destTitle = columnTitles[destinationColumn as keyof typeof columnTitles];
@@ -122,6 +123,7 @@ function MovementIndicator({
   );
 }
 
+
 // Enhanced Drop Zone Component with mobile support
 function DropZone({ columnId, isOver, draggedItem }: {
   columnId: string;
@@ -138,8 +140,8 @@ function DropZone({ columnId, isOver, draggedItem }: {
     <div
       ref={setNodeRef}
       className={`w-full min-h-[100px] border-2 border-dashed rounded-xl p-4 transition-all duration-300 touch-manipulation ${isOver
-          ? 'border-green-500 bg-green-100 scale-105 shadow-lg'
-          : 'border-gray-300 bg-gray-50'
+        ? 'border-green-500 bg-green-100 scale-105 shadow-lg'
+        : 'border-gray-300 bg-gray-50'
         }`}
     >
       <div className="flex items-center justify-center h-full text-gray-500">
@@ -238,7 +240,7 @@ function SortableItem({ _id, orderId, orderDate, product, productImage, onClickI
       </div>
 
       {/* Tooltip for full product name - Hidden on mobile */}
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 hidden md:block">
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-100 hidden md:block ">
         {product}
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
       </div>
@@ -467,48 +469,69 @@ export default function OrderManagementPage() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
-
+  
     const [activeCol, draggedItem] = findColumn(active.id);
     const [overCol] = findColumn(over.id);
     if (!activeCol || !overCol || !draggedItem) return;
-
-
+  
+    const resetIndicator = () => {
+      setDraggedItem(null);
+      setSourceColumn(null);
+      setDestinationColumn(null);
+    };
+  
+    // // Enforce sequential flow
+    // const sourceIndex = kanbanOrder.indexOf(activeCol);
+    // const destIndex = kanbanOrder.indexOf(overCol);
+    // if (destIndex < sourceIndex || destIndex > sourceIndex + 1) {
+    //   toast.error(`You must move orders step by step.`);
+    //   resetIndicator();
+    //   return;
+    // }
+  
+    // Checklist validation
     const protectedColumns = ["video_confirmation", "dispatch", "updated_tracking_id"];
     if (protectedColumns.includes(overCol)) {
       const allChecked = (draggedItem.checklist ?? []).every(c => c.checked);
       if (!allChecked) {
+        toast.warn(`Complete all checklist items before moving to ${columnTitles[overCol as keyof typeof columnTitles]}`);
         setPendingDragItem(draggedItem);
         setPendingDragSource(activeCol);
         setActiveItem(draggedItem);
         setIsCheckListModalOpen(true);
+        resetIndicator();
         return;
       }
     }
-
-    if (
-      activeCol === "updated_tracking_id" &&
-      ["delivery_confirmation", "review", "done"].includes(overCol)
-    ) {
-      if (!draggedItem.trackingId || !draggedItem.courierCompany) {
-        toast.error("Please fill Tracking ID & Courier Company before moving!");
+  
+    // Final columns require both checklist + tracking
+    const finalColumns = ["delivery_confirmation", "review", "done"];
+    if (finalColumns.includes(overCol)) {
+      const allChecked = (draggedItem.checklist ?? []).every(c => c.checked);
+      if (!allChecked) {
+        toast.warn("Complete checklist before moving to final stage.");
+        setPendingDragItem(draggedItem);
+        setPendingDragSource(activeCol);
+        setActiveItem(draggedItem);
+        setIsCheckListModalOpen(true);
+        resetIndicator();
+        return;
+      }
+      if (!draggedItem?.trackingId || !draggedItem?.courierCompany) {
+        toast.warn("Add tracking info before moving to final stage.");
         setTrackingItem(draggedItem);
         setIsTrackingModalOpen(true);
+        resetIndicator();
         return;
       }
     }
-
-
-
+  
+    //  Move order if all checks pass
     moveItemBetweenColumns(draggedItem, activeCol, overCol);
     updateStatusApiOptimistic(draggedItem._id, overCol);
-
-
-    setTimeout(() => {
-      setDraggedItem(null);
-      setSourceColumn(null);
-      setDestinationColumn(null);
-    }, 400);
+    resetIndicator();
   };
+  
 
 
 
@@ -685,8 +708,8 @@ export default function OrderManagementPage() {
               return (
                 <div
                   key={colId}
-                  className={`bg-white w-64 sm:w-72 md:w-74 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0 transition-all duration-300 touch-manipulation ${isSourceColumn ? 'ring-4 ring-blue-400 ring-opacity-60 bg-blue-50' : ''
-                    } ${isDestinationColumn ? 'ring-4 ring-green-400 ring-opacity-60 bg-green-50' : ''
+                  className={`bg-white w-64 sm:w-72 md:w-74 lg:w-64 xl:w-56 rounded-2xl shadow-lg border-2 ${col.color} flex flex-col min-h-[600px] flex-shrink-0 transition-all duration-300 touch-manipulation ${isSourceColumn ? 'ring-2 ring-blue-400 ring-opacity-60 bg-blue-50' : ''
+                    } ${isDestinationColumn ? 'ring-2 ring-green-400 ring-opacity-60 bg-green-50' : ''
                     }`}
                 >
                   {/* Column Header */}
@@ -762,7 +785,14 @@ export default function OrderManagementPage() {
           trackingItem={trackingItem}
         />
       )}
-
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar
+        newestOnTop
+        pauseOnHover
+        closeOnClick
+      />
     </div>
   );
 }
