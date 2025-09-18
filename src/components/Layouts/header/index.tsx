@@ -20,16 +20,22 @@ export function Header() {
         return 'Dashboard';
       case '/user':
         return 'User Management';
-      case '/order':
-        return 'Order Management';
+      case '/product/add-product':
+        return 'Add Product';
+      case '/product/product-list':
+        return 'Product List';
+      case '/supplier/add-supplier':
+        return 'Add Supplier';
+      case '/supplier/supplier-list':
+        return 'Supplier List';
+      case '/order/add-order':
+        return 'Add Order';
+      case '/order/order-list':
+        return 'Order List';
       case '/order-management':
         return 'Order Management';
       case '/income':
         return 'Income Management';
-      case '/product':
-        return 'Product Management';
-      case '/supplier':
-        return 'Supplier Management';
       case '/customer':
         return 'Customer Management';
       case '/expense':

@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, Suspense } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useSearchParams, useRouter } from "next/navigation";
+import { register } from "@/apiStore/api";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Form validation schema
 const userSchema = z.object({
@@ -49,12 +53,27 @@ const clientTypes = [
 ];
 
 export default function UserPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading Add Customer...</div>}>
+      <UserPageContent />
+    </Suspense>
+  );
+}
+
+ function UserPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [isSocialAccordionOpen, setIsSocialAccordionOpen] = useState(false);
   const [platformEntries, setPlatformEntries] = useState<PlatformEntry[]>([]);
   const [newPlatform, setNewPlatform] = useState("");
   const [newUsername, setNewUsername] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const name = searchParams.get("name");
+  const isOrder = searchParams.get("isOrder") === "true";
+
+  // Use useRef to prevent multiple API calls
+  const isSubmittingRef = useRef(false);
 
   const {
     control,
@@ -65,7 +84,7 @@ export default function UserPage() {
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      firstName: "",
+      firstName: name || "",
       lastName: "",
       address: "",
       contactNumber: "",
@@ -110,34 +129,73 @@ export default function UserPage() {
   };
 
   const onSubmit = async (data: UserFormData) => {
+    // Prevent multiple API calls using useRef
+    if (isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("User data:", data);
-      console.log("Platform entries:", platformEntries);
-      alert("User created successfully!");
+      const payload = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        address: data.address || "",
+        contactNumber: data.contactNumber || "",
+        email: data.email || "",
+        clientType: data.clientType,
+        company: data.company || "",
+        platforms: platformEntries.map(entry => ({
+          platformName: entry.platform,
+          platformUsername: entry.username
+        }))
+      };
+      const response = await register(payload);
+      // Show success toast
+      toast.success("User Created Successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      // Reset form and state
       reset();
       setSelectedPlatform("");
       setPlatformEntries([]);
       setIsSocialAccordionOpen(false);
-    } catch (error) {
+      if (response.status === 200) {
+        // Redirect based on isOrder parameter
+        if (isOrder) {
+          router.push("/order/add-order");
+        } else {
+          router.push("/customer/customer-list");
+        }
+      }
+
+    } catch (error: any) {
       console.error("Error creating user:", error);
-      alert("Error creating user. Please try again.");
     } finally {
       setIsSubmitting(false);
+      isSubmittingRef.current = false;
     }
   };
 
   return (
     <div className="mx-auto max-w-8xl">
+      {/* Toast Container */}
+      <ToastContainer />
+
       {/* User Form */}
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-800 sm:p-5 lg:p-6">
-        <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="mb-8 text-center px-4 sm:px-0">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
             Create New User
           </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Fill in the details below to create a new user account
           </p>
         </div>
@@ -145,7 +203,7 @@ export default function UserPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Personal Information Section */}
           <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-blue-100 p-1 dark:bg-blue-900/30">
                 <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -287,7 +345,7 @@ export default function UserPage() {
 
           {/* Contact & Address Section */}
           <div className="rounded-xl bg-gray-50 p-6 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
               <div className="mr-3 h-6 w-6 rounded-full bg-green-100 p-1 dark:bg-green-900/30">
                 <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -356,7 +414,7 @@ export default function UserPage() {
               className="w-full p-6 text-left"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
                   <div className="mr-3 h-6 w-6 rounded-full bg-purple-100 p-1 dark:bg-purple-900/30">
                     <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 4v2h6V4M9 4a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V6a2 2 0 00-2-2" />
