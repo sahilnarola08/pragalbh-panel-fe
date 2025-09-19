@@ -7,69 +7,22 @@ export const NAV_DATA = [
       {
         title: "Customer",
         icon: Icons.User,
-        items: [
-          {
-            title: "Add Customer",
-            url: "/customer/add-customer",
-            icon: Icons.AddIcon,
-          },
-          {
-            title: "Customer List",
-            url: "/customer/customer-list",
-            icon: Icons.ListIcon,
-          },
-        ],
+        url: "/customer/customer-list",
       },
       {
         title: "Order",
         icon: Icons.Table,
-        url: "/order",
-        items: [
-          {
-            title: "Add Order",
-            url: "/order/add-order",
-            icon: Icons.AddIcon,
-          },
-          {
-            title: "Order List",
-            url: "/order/order-list",
-            icon: Icons.ListIcon,
-          },
-        ],
+        url: "/order/order-list",
       },
       {
         title: "Product",
         icon: Icons.FourCircle,
-        url: "/product",
-        items: [
-          {
-            title: "Add Product",
-            url: "/product/add-product",
-            icon: Icons.AddIcon,
-          },
-          {
-            title: "Product List",
-            url: "/product/product-list",
-            icon: Icons.ListIcon,
-          },
-        ],
+        url: "/product/product-list",
       },
       {
         title: "Supplier",
         icon: Icons.HomeIcon,
-        url: "/supplier",
-        items: [
-          {
-            title: "Add Supplier",
-            url: "/supplier/add-supplier",
-            icon: Icons.AddIcon,
-          },
-          {
-            title: "Supplier List",
-            url: "/supplier/supplier-list",
-            icon: Icons.ListIcon,
-          },
-        ],
+        url: "/supplier/supplier-list",
       },
       {
         title: "Order Management",
