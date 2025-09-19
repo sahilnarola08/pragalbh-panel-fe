@@ -71,7 +71,7 @@ function SupplierPageContent() {
         if(isOrder) {
           router.push("/order");
         } else {
-          router.push("/supplier");
+          router.push("/supplier/supplier-list");
         }
       }
       reset();
@@ -107,7 +107,7 @@ function SupplierPageContent() {
               {/* First Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  First Name *
+                  First Name <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="firstName"
@@ -131,7 +131,7 @@ function SupplierPageContent() {
               {/* Last Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Last Name *
+                  Last Name <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="lastName"
@@ -156,7 +156,7 @@ function SupplierPageContent() {
               {/* Company Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Company Name *
+                  Company Name <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="companyName"
@@ -180,7 +180,7 @@ function SupplierPageContent() {
               {/* Contact Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Contact Number *
+                  Contact Number <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="contactNumber"
@@ -242,7 +242,7 @@ function SupplierPageContent() {
               </div>
               <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Address *
+                Address <span className="text-red-500">*</span>   
               </label>
               <Controller
                 name="address"
