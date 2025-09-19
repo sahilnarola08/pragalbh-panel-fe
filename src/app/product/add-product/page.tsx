@@ -161,7 +161,7 @@ function ProductPageContent() {
               {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Category *
+                  Category <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="category"
@@ -190,7 +190,7 @@ function ProductPageContent() {
               {/* Product Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Product Name *
+                  Product Name <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="productName"
