@@ -17,9 +17,11 @@ const userSchema = z.object({
   contactNumber: z.string().min(10, "Contact number must be at least 10 digits").optional(),
   platformName: z.string().optional(),
   platformUsername: z.string().optional(),
-  email: z.string().email("Please enter a valid email address").optional(),
+  email: z.string().refine((val) => val === "" || z.string().email().safeParse(val).success, {
+    message: "Please enter a valid email address"
+  }).optional(),
   clientType: z.string().min(1, "Please select a client type"),
-  company: z.string().min(1, "Company name must be at least 1 character").optional(),
+  company: z.string().optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -217,7 +219,7 @@ export default function UserPage() {
               {/* First Name */}
               <div className="group">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 ">
-                  First Name *
+                  First Name <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="firstName"
@@ -243,7 +245,7 @@ export default function UserPage() {
               {/* Last Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Last Name *
+                  Last Name <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="lastName"
@@ -291,7 +293,7 @@ export default function UserPage() {
               {/* Company */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Company
+                  Company 
                 </label>
                 <Controller
                   name="company"
@@ -315,7 +317,7 @@ export default function UserPage() {
               {/* Client Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Client Type *
+                  Client Type <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="clientType"
@@ -359,7 +361,7 @@ export default function UserPage() {
               {/* Contact Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Contact Number
+                  Contact Number <span className="text-red-500">*</span>  
                 </label>
                 <Controller
                   name="contactNumber"
@@ -383,7 +385,7 @@ export default function UserPage() {
               {/* Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Address
+                  Address <span className="text-red-500">*</span>     
                 </label>
                 <Controller
                   name="address"
@@ -438,11 +440,11 @@ export default function UserPage() {
               <div className="px-6 pb-6 space-y-6">
                 {/* Add New Platform Entry */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 ">
-                  <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 ">
                     <select
                       value={newPlatform}
                       onChange={(e) => setNewPlatform(e.target.value)}
-                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
+                      className=" bg-gray-100 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
                     >
                       <option value="">Select platform</option>
                       {platforms.map((platform) => (
@@ -457,7 +459,7 @@ export default function UserPage() {
                         value={newUsername}
                         onChange={(e) => setNewUsername(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
+                        className=" bg-gray-100 block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
                         placeholder="Enter username"
                       />
                       <button

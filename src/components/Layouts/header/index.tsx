@@ -36,8 +36,10 @@ export function Header() {
         return 'Order Management';
       case '/income':
         return 'Income Management';
-      case '/customer':
+      case '/customer/customer-list':
         return 'Customer Management';
+      case '/customer/add-customer':
+        return 'Add Customer';
       case '/expense':
         return 'Expense Management';
       case '/platform':
