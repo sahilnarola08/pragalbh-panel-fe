@@ -21,6 +21,7 @@ interface Order {
   otherDetails: string;
   createdAt: string;
   updatedAt: string;
+  orderId: string;
   __v: number;
 }
 
@@ -242,7 +243,7 @@ const OrderList = () => {
               columns={columns}
               data={orders.map(order => ({
                 ...order,
-                _id: getOrderId(order._id),
+                _id:order.orderId,
                 purchasePrice: formatCurrency(order.purchasePrice),
                 sellingPrice: formatCurrency(order.sellingPrice),
                 orderDate: formatDate(order.orderDate),
