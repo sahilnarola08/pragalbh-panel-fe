@@ -24,6 +24,7 @@ interface Product {
   _id: string;
   productName: string;
   category: string;
+  image?: string; // Add image field
 }
 
 // Add Supplier interface after Product interface (around line 27)
@@ -536,14 +537,41 @@ export default function OrderPage() {
                             products.map((product) => (
                               <div
                                 key={product._id}
-                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300"
+                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center gap-3"
                                 onClick={() => {
                                   field.onChange(product.productName);
                                   setShowProductSuggestions(false);
                                   setProductSearchQuery('');
                                 }}
                               >
-                                {product.productName} ({product.category})
+                                {/* Product Image */}
+                                <div className="flex-shrink-0">
+                                  {product.image ? (
+                                    <Image
+                                      src={product.image}
+                                      alt={product.productName}
+                                      width={32}
+                                      height={32}
+                                      className="w-8 h-8 rounded object-cover border border-gray-200 dark:border-gray-600"
+                                    />
+                                  ) : (
+                                    <div className="w-8 h-8 rounded bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Product Info */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-gray-900 dark:text-white truncate">
+                                    {product.productName}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {product.category}
+                                  </div>
+                                </div>
                               </div>
                             ))
                           ) : (
@@ -552,8 +580,14 @@ export default function OrderPage() {
                                 const productName = field.value || productSearchQuery;
                                 router.push(`/product/add-product?name=${encodeURIComponent(productName)}&isOrder=true`);
                               }}
-                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
-                              Add &apos;{field.value || productSearchQuery}&apos; 
+                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3"
+                            >
+                              <div className="w-8 h-8 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                              </div>
+                              <span>Add &apos;{field.value || productSearchQuery}&apos;</span>
                             </div>
                           )}
                         </div>
@@ -806,97 +840,6 @@ export default function OrderPage() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-          <div className="rounded-xl bg-gray-50 md:p-6 p-2 dark:bg-gray-700/50">
-            <h3 className="mb-6 text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center px-2 sm:px-0">
-              <div className="mr-3 h-6 w-6 rounded-full bg-indigo-100 p-1 dark:bg-indigo-900/30">
-                <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              Supplier Information
-            </h3>
-
-            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-1">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Supplier
-                </label>
-                <Controller
-                  name="supplier"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="relative">
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                          </svg>
-                        </div>
-                        <input
-                          {...field}
-                          type="text"
-                          className="mt-1 block w-full rounded-lg border border-gray-300 pl-10 pr-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                          placeholder="Search or enter supplier name"
-                          onChange={(e) => {
-                            field.onChange(e);
-                            setSupplierSearchQuery(e.target.value);
-                            setShowSupplierSuggestions(true);
-                          }}
-                          onFocus={() => setShowSupplierSuggestions(true)}
-                        />
-                      </div>
-
-                      {/* Loading indicator */}
-                      {isLoadingSuppliers && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          <svg className="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                      )}
-
-                      {/* Supplier Suggestions Dropdown */}
-                      {showSupplierSuggestions && (field.value || supplierSearchQuery) && !isLoadingSuppliers && (
-                        <div ref={supplierSuggestionsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
-                          {/* Existing suppliers */}
-                          {suppliers.length > 0 ? (
-                            suppliers.map((supplier) => (
-                              <div
-                                key={supplier._id}
-                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300"
-                                onClick={() => {
-                                  field.onChange(supplier.fullName);
-                                  setShowSupplierSuggestions(false);
-                                  setSupplierSearchQuery('');
-                                }}
-                              >
-                                {supplier.fullName}
-                              </div>
-                            ))
-                          ) : (
-                            <div 
-                              onClick={() => {
-                                const supplierName = field.value || supplierSearchQuery;
-                                router.push(`/supplier/add-supplier?name=${encodeURIComponent(supplierName)}&isOrder=true`);
-                              }}
-                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
-                              Add &apos;{field.value || supplierSearchQuery}&apos; 
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                />
-                {errors.supplier && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.supplier.message}
-                  </p>
-                )}
-              </div>
             </div>
           </div>
           <div className="rounded-xl bg-gray-50 dark:bg-gray-700/50 overflow-hidden">
