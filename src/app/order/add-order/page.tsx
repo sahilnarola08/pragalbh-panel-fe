@@ -108,6 +108,7 @@ export default function OrderPage() {
   const [supplierSearchQuery, setSupplierSearchQuery] = useState("");
   const [showSupplierSuggestions, setShowSupplierSuggestions] = useState(false);
   const [debouncedSupplierSearchQuery, setDebouncedSupplierSearchQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Debounce search query
   useEffect(() => {
@@ -522,7 +523,7 @@ export default function OrderPage() {
                         <input
                           {...field}
                           type="text"
-                          className="mt-1 block w-full rounded-lg border border-gray-300 pl-10 pr-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
+                          className="mt-1 block w-full rounded-lg border border-gray-300 pl-10 pr-12 py-2 shadow-sm focus-within:border-blue-500 focus-within:outline-none focus-within:ring-1 focus-within:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus-within:border-blue-400"
                           placeholder="Search or enter product name"
                           onChange={(e) => {
                             field.onChange(e);
@@ -537,6 +538,17 @@ export default function OrderPage() {
                             }
                           }}
                         />
+                        {selectedProduct?.image && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <Image
+                              src={selectedProduct.image}
+                              alt={selectedProduct.productName}
+                              width={24}
+                              height={24}
+                              className="w-6 h-6 rounded object-cover border border-gray-200 dark:border-gray-600"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       {/* Loading indicator */}
@@ -561,15 +573,26 @@ export default function OrderPage() {
                             )).map((product) => (
                               <div
                                 key={product._id}
-                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center gap-3"
+                                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between"
                                 onClick={() => {
                                   field.onChange(product.productName);
+                                  setSelectedProduct(product); // Store the selected product
                                   setShowProductSuggestions(false);
                                   setProductSearchQuery('');
                                 }}
                               >
-                                {/* Product Image */}
-                                <div className="flex-shrink-0">
+                                {/* Product Info on the left */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-gray-900 dark:text-white truncate">
+                                    {product.productName}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {product.category}
+                                  </div>
+                                </div>
+                                
+                                {/* Product Image on the right corner */}
+                                <div className="flex-shrink-0 ml-3">
                                   {product.image ? (
                                     <Image
                                       src={product.image}
@@ -586,16 +609,6 @@ export default function OrderPage() {
                                     </div>
                                   )}
                                 </div>
-                                
-                                {/* Product Info */}
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-gray-900 dark:text-white truncate">
-                                    {product.productName}
-                                  </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                                    {product.category}
-                                  </div>
-                                </div>
                               </div>
                             ))
                           ) : (
@@ -604,14 +617,14 @@ export default function OrderPage() {
                                 const productName = field.value || productSearchQuery;
                                 router.push(`/product/add-product?name=${encodeURIComponent(productName)}&isOrder=true`);
                               }}
-                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3"
+                              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-between"
                             >
-                              <div className="w-8 h-8 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                              <span>Add &apos;{field.value || productSearchQuery}&apos;</span>
+                              <div className="w-8 h-8 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center ml-3">
                                 <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
                               </div>
-                              <span>Add &apos;{field.value || productSearchQuery}&apos;</span>
                             </div>
                           )}
                         </div>
