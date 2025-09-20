@@ -14,7 +14,6 @@ const supplierSchema = z.object({
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
   contactNumber: z.string()
-    .min(10, "Contact number must be at least 10 digits")
     .max(15, "Contact number cannot exceed 15 digits")
     .regex(/^[0-9]+$/, "Contact number must contain only numbers"),
   address: z.string().min(10, "Address must be at least 10 characters"),
@@ -197,8 +196,8 @@ function SupplierPageContent() {
                       onBlur={field.onBlur}
                       name={field.name}
                       className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
-                      placeholder="Enter contact number (digits only)"
-                      maxLength={10}
+                      placeholder="Enter contact number"
+                      maxLength={15}
                     />
                   )}
                 />

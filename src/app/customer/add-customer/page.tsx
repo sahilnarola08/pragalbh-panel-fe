@@ -14,7 +14,9 @@ const userSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   address: z.string().min(10, "Address must be at least 10 characters").optional(),
-  contactNumber: z.string().min(10, "Contact number must be at least 10 digits").optional(),
+  contactNumber: z.string().refine((val) => val === "" || /^\d+$/.test(val), {
+    message: "Contact number must contain only digits"
+  }).optional(),
   platformName: z.string().optional(),
   platformUsername: z.string().optional(),
   email: z.string().refine((val) => val === "" || z.string().email().safeParse(val).success, {
@@ -180,6 +182,14 @@ export default function UserPage() {
 
     } catch (error: any) {
       console.error("Error creating user:", error);
+      toast.error(error.response.data.message, {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsSubmitting(false);
       isSubmittingRef.current = false;
@@ -361,7 +371,7 @@ export default function UserPage() {
               {/* Contact Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Contact Number <span className="text-red-500">*</span>  
+                  Contact Number 
                 </label>
                 <Controller
                   name="contactNumber"
@@ -370,6 +380,13 @@ export default function UserPage() {
                     <input
                       {...field}
                       type="tel"
+                      pattern="[0-9]*"
+                      inputMode="numeric"
+                      onKeyPress={(e) => {
+                        if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+                          e.preventDefault();
+                        }
+                      }}
                       className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400"
                       placeholder="Enter contact number"
                     />
